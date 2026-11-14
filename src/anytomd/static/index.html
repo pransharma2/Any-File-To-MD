@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Any File To MD</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f6f5fb; --card: #ffffff; --ink: #1c1b29; --muted: #6b6a80; --line: #e6e4f0;
+    --accent: #7c5cf0; --accent2: #06b6d4; --accent-ink: #fff; --ok: #12a46a; --bad: #e0445a;
+    --soft: #f1eefe; --shadow: 0 10px 40px rgba(76, 53, 160, .12);
+    --glow1: #d9ccff; --glow2: #bdeffa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12111c; --card: #1b1a29; --ink: #f1f0fa; --muted: #9a98b5; --line: #2c2a42;
+      --accent: #9a82ff; --soft: #25223d; --shadow: 0 10px 40px rgba(0, 0, 0, .45);
+      --glow1: #3a2c7a; --glow2: #0e4a58;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+    background: var(--bg); min-height: 100vh; display: flex; justify-content: center; padding: 40px 16px;
+    background-image:
+      radial-gradient(600px 400px at 10% -10%, var(--glow1), transparent 70%),
+      radial-gradient(600px 400px at 100% 0%, var(--glow2), transparent 70%);
+    background-repeat: no-repeat;
+  }
+  main { width: 100%; max-width: 680px; }
+  header { text-align: center; margin-bottom: 28px; }
+  .logo { width: 64px; height: 64px; border-radius: 18px; box-shadow: var(--shadow); }
+  h1 { margin: 14px 0 4px; font-size: 32px; letter-spacing: -.02em; }
+  header p { margin: 0; color: var(--muted); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .step { display: flex; gap: 14px; margin-bottom: 22px; }
+  .num {
+    flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--soft); color: var(--accent);
+    font-weight: 700; display: grid; place-items: center; font-size: 14px; margin-top: 2px;
+  }
+  .step > div { flex: 1; min-width: 0; }
+  label { display: block; font-weight: 600; margin-bottom: 2px; }
+  .hint { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+  .row { display: flex; gap: 8px; }
+  input[type=text] {
+    flex: 1; min-width: 0; font: inherit; padding: 11px 14px; border-radius: 12px; color: var(--ink);
+    border: 1.5px solid var(--line); background: var(--bg); outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer; border-radius: 12px; padding: 11px 18px;
+    border: 1.5px solid var(--line); background: var(--card); color: var(--ink); transition: transform .08s, background .15s;
+  }
+  button:hover { background: var(--soft); }
+  button:active { transform: scale(.98); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .go {
+    width: 100%; font-size: 18px; padding: 15px; border: 0; color: var(--accent-ink);
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 8px 22px rgba(124, 92, 240, .35);
+  }
+  .go:hover { background: linear-gradient(135deg, var(--accent), var(--accent2)); filter: brightness(1.08); }
+  .err { color: var(--bad); font-size: 14px; min-height: 20px; margin-top: 6px; }
+  .formats { margin-top: 18px; color: var(--muted); font-size: 13px; text-align: center; }
+  .formats b { color: var(--ink); font-weight: 600; }
+
+  #progress { display: none; }
+  .bar { height: 12px; border-radius: 99px; background: var(--soft); overflow: hidden; margin: 12px 0 8px; }
+  .bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .25s; }
+  .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; gap: 12px; }
+  .meta span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: right; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
+  .stat { background: var(--soft); border-radius: 14px; padding: 12px; text-align: center; }
+  .stat b { display: block; font-size: 26px; line-height: 1.1; }
+  .stat small { color: var(--muted); }
+  .ok b { color: var(--ok); } .bad b { color: var(--bad); }
+  .done-head { display: flex; align-items: center; gap: 12px; }
+  .check { width: 44px; height: 44px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 24px; flex: none; }
+  .check.warn { background: var(--bad); }
+  .done-head h2 { margin: 0; font-size: 22px; }
+  .done-head p { margin: 0; color: var(--muted); word-break: break-all; font-size: 14px; }
+  .actions { display: flex; gap: 10px; }
+  .actions .go { flex: 2; font-size: 16px; padding: 13px; }
+  .actions button:not(.go) { flex: 1; }
+  details { margin-top: 14px; font-size: 14px; }
+  summary { cursor: pointer; color: var(--muted); }
+  details ul { margin: 8px 0 0; padding-left: 18px; max-height: 160px; overflow: auto; color: var(--muted); word-break: break-all; }
+
+  /* folder picker */
+  dialog { border: 1px solid var(--line); border-radius: 20px; padding: 0; width: min(560px, 94vw); background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgba(10, 8, 24, .55); backdrop-filter: blur(3px); }
+  .dlg-head { padding: 18px 20px 10px; }
+  .dlg-head h3 { margin: 0 0 8px; }
+  .crumb { font-size: 13px; color: var(--muted); word-break: break-all; }
+  .places { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .places button { padding: 5px 12px; font-size: 13px; border-radius: 99px; }
+  .list { height: 300px; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .item { display: flex; gap: 10px; align-items: center; padding: 10px 20px; cursor: pointer; border-bottom: 1px solid var(--line); }
+  .item:hover { background: var(--soft); }
+  .item.empty { color: var(--muted); cursor: default; justify-content: center; }
+  .dlg-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; gap: 10px; }
+  .dlg-foot .go { width: auto; font-size: 15px; padding: 11px 20px; box-shadow: none; }
+  @media (max-width: 480px) { .stats { grid-template-columns: 1fr 1fr 1fr; } .stat b { font-size: 20px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img class="logo" src="/favicon.svg" alt="">
+    <h1>Any File To MD</h1>
+    <p>Turn a whole folder into clean Markdown. Your originals are never touched.</p>
+  </header>
+
+  <section class="card" id="setup">
+    <div class="step">
+      <span class="num">1</span>
+      <div>
+        <label for="src">Pick a folder to convert</label>
+        <div class="hint">Paste a path, or browse. Subfolders are included.</div>
+        <div class="row">
+          <input type="text" id="src" placeholder="C:\Users\you\Documents\My Files" spellcheck="false" autocomplete="off">
+          <button id="browseSrc" type="button">Browse…</button>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="num">2</span>
+      <div>
+        <label for="out">Where should the Markdown go?</label>
+        <div class="hint">A new copy of the folder. We suggest one next to the original.</div>
+        <div class="row">
+          <input type="text" id="out" placeholder="Filled in automatically" spellcheck="false" autocomplete="off">
+          <button id="browseOut" type="button">Browse…</button>
+        </div>
+      </div>
+    </div>
+    <button class="go" id="go" type="button">Convert to Markdown</button>
+    <div class="err" id="err" role="alert"></div>
+    <div class="formats"><b>Works with</b> PDF · Word · PowerPoint · Excel · CSV · HTML · JSON · XML · EPUB · ZIP · Outlook · images · code &amp; text files</div>
+  </section>
+
+  <section class="card" id="progress">
+    <div id="running">
+      <div class="done-head"><div><h2 id="runTitle">Converting…</h2></div></div>
+      <div class="bar"><i id="fill"></i></div>
+      <div class="meta"><span id="count">0 / 0</span><span id="cur"></span></div>
+      <div class="actions" style="margin-top:18px"><button id="cancel" type="button">Cancel</button></div>
+    </div>
+    <div id="finished" style="display:none">
+      <div class="done-head">
+        <div class="check" id="icon">✓</div>
+        <div><h2 id="doneTitle">All done</h2><p id="doneOut"></p></div>
+      </div>
+      <div class="stats">
+        <div class="stat ok"><b id="sOk">0</b><small>converted</small></div>
+        <div class="stat bad"><b id="sBad">0</b><small>skipped</small></div>
+        <div class="stat"><b id="sTime">0s</b><small>time</small></div>
+      </div>
+      <div class="actions">
+        <button class="go" id="open" type="button">Open the Markdown folder</button>
+        <button id="again" type="button">Convert another</button>
+      </div>
+      <details id="fails"><summary id="failSum"></summary><ul id="failList"></ul></details>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="dlg-head">
+    <h3 id="dlgTitle">Choose a folder</h3>
+    <div class="crumb" id="crumb"></div>
+    <div class="places" id="places"></div>
+  </div>
+  <div class="list" id="list"></div>
+  <div class="dlg-foot">
+    <button id="up" type="button">↑ Up</button>
+    <span style="flex:1"></span>
+    <button id="dlgCancel" type="button">Cancel</button>
+    <button class="go" id="choose" type="button">Use this folder</button>
+  </div>
+</dialog>
+
+<script>
+const TOKEN = "__TOKEN__";
+const $ = id => document.getElementById(id);
+const api = async (path, body) => {
+  const res = await fetch(path, {
+    method: body === undefined ? "GET" : "POST",
+    headers: { "X-Token": TOKEN, ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Something went wrong");
+  return data;
+};
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- output auto-suggestion ---------- */
+let outTouched = false;
+$("out").addEventListener("input", () => { outTouched = true; });
+let suggestTimer;
+$("src").addEventListener("input", () => {
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(async () => {
+    const v = $("src").value.trim();
+    if (!v || outTouched) return;
+    try { $("out").value = (await api("/api/suggest", { source: v })).output; } catch {}
+  }, 250);
+});
+
+/* ---------- folder picker ---------- */
+let pickTarget = null, here = "", parent = null;
+async function load(path) {
+  try {
+    const d = await api("/api/browse?path=" + encodeURIComponent(path));
+    here = d.path; parent = d.parent;
+    $("crumb").textContent = here || "This computer";
+    $("choose").disabled = !here;
+    $("up").disabled = parent === null;
+    $("places").innerHTML = d.places.map(p => `<button type="button" data-p="${esc(p.path)}">${esc(p.name)}</button>`).join("");
+    $("list").innerHTML = d.dirs.length
+      ? d.dirs.map(x => `<div class="item" data-p="${esc(x.path)}">📁 <span>${esc(x.name)}</span></div>`).join("")
+      : `<div class="item empty">No subfolders here</div>`;
+  } catch (e) { $("crumb").textContent = e.message; }
+}
+function openPicker(target) {
+  pickTarget = target;
+  $("dlgTitle").textContent = target === "src" ? "Choose the folder to convert" : "Choose where to save the Markdown";
+  const start = $(target).value.trim();
+  load(start).then(() => {}).catch(() => {});
+  $("dlg").showModal();
+}
+$("browseSrc").onclick = () => openPicker("src");
+$("browseOut").onclick = () => openPicker("out");
+$("list").onclick = e => { const it = e.target.closest(".item[data-p]"); if (it) load(it.dataset.p); };
+$("places").onclick = e => { const b = e.target.closest("button[data-p]"); if (b) load(b.dataset.p); };
+$("up").onclick = () => load(parent || "");
+$("dlgCancel").onclick = () => $("dlg").close();
+$("choose").onclick = () => {
+  $(pickTarget).value = here;
+  if (pickTarget === "src") { outTouched = false; $("src").dispatchEvent(new Event("input")); } else outTouched = true;
+  $("dlg").close();
+};
+
+/* ---------- run ---------- */
+let poll = null;
+const show = id => { for (const s of ["setup", "progress"]) $(s).style.display = s === id ? "block" : "none"; };
+show("setup");
+
+$("go").onclick = async () => {
+  $("err").textContent = "";
+  const source = $("src").value.trim();
+  if (!source) { $("err").textContent = "Pick a folder first."; return; }
+  try {
+    await api("/api/start", { source, output: $("out").value.trim() });
+  } catch (e) { $("err").textContent = e.message; return; }
+  $("running").style.display = "block"; $("finished").style.display = "none";
+  $("fill").style.width = "0%"; show("progress");
+  poll = setInterval(tick, 400); tick();
+};
+$("cancel").onclick = () => { $("cancel").disabled = true; api("/api/cancel", {}); };
+$("open").onclick = () => api("/api/open", {}).catch(e => alert(e.message));
+$("again").onclick = () => { show("setup"); $("cancel").disabled = false; };
+
+async function tick() {
+  let s;
+  try { s = await api("/api/status"); } catch { return; }
+  const pct = s.total ? Math.round(100 * s.done / s.total) : 0;
+  $("fill").style.width = pct + "%";
+  $("runTitle").textContent = s.state === "scanning" ? "Looking through your folder…" : `Converting… ${pct}%`;
+  $("count").textContent = `${s.done} / ${s.total} files`;
+  $("cur").textContent = s.current;
+  if (["done", "cancelled", "error"].includes(s.state)) {
+    clearInterval(poll);
+    if (s.state === "error") { show("setup"); $("err").textContent = s.error; return; }
+    $("running").style.display = "none"; $("finished").style.display = "block";
+    const bad = s.failed > 0;
+    $("icon").textContent = bad ? "!" : "✓"; $("icon").classList.toggle("warn", bad && !s.converted);
+    $("doneTitle").textContent = s.state === "cancelled" ? "Stopped" : s.total === 0 ? "Nothing to convert" : bad ? "Done, with a few skipped" : "All done";
+    $("doneOut").textContent = s.output;
+    $("sOk").textContent = s.converted; $("sBad").textContent = s.failed; $("sTime").textContent = s.seconds + "s";
+    $("fails").style.display = bad ? "block" : "none";
+    $("failSum").textContent = `${s.failed} file${s.failed === 1 ? "" : "s"} couldn't be converted (see _conversion-report.md)`;
+    $("failList").innerHTML = s.failures.map(f => `<li><b>${esc(f.file)}</b>: ${esc(f.reason)}</li>`).join("");
+  }
+}
+</script>
+</body>
+</html>

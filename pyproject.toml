@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "any-file-to-md"
+version = "1.0.0"
+description = "Point at a folder, get a mirrored folder of Markdown. Local, private, no accounts."
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "markitdown[docx,pptx,xlsx,xls,pdf,outlook]>=0.1.2,<0.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "python-docx>=1.1"]
+
+[project.scripts]
+anytomd = "anytomd.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+anytomd = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
