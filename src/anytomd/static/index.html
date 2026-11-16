@@ -6,188 +6,462 @@
 <title>Any File To MD</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
-  :root {
-    --bg: #f6f5fb; --card: #ffffff; --ink: #1c1b29; --muted: #6b6a80; --line: #e6e4f0;
-    --accent: #7c5cf0; --accent2: #06b6d4; --accent-ink: #fff; --ok: #12a46a; --bad: #e0445a;
-    --soft: #f1eefe; --shadow: 0 10px 40px rgba(76, 53, 160, .12);
-    --glow1: #d9ccff; --glow2: #bdeffa;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #12111c; --card: #1b1a29; --ink: #f1f0fa; --muted: #9a98b5; --line: #2c2a42;
-      --accent: #9a82ff; --soft: #25223d; --shadow: 0 10px 40px rgba(0, 0, 0, .45);
-      --glow1: #3a2c7a; --glow2: #0e4a58;
-    }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body {
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
-    background: var(--bg); min-height: 100vh; display: flex; justify-content: center; padding: 40px 16px;
-    background-image:
-      radial-gradient(600px 400px at 10% -10%, var(--glow1), transparent 70%),
-      radial-gradient(600px 400px at 100% 0%, var(--glow2), transparent 70%);
-    background-repeat: no-repeat;
-  }
-  main { width: 100%; max-width: 680px; }
-  header { text-align: center; margin-bottom: 28px; }
-  .logo { width: 64px; height: 64px; border-radius: 18px; box-shadow: var(--shadow); }
-  h1 { margin: 14px 0 4px; font-size: 32px; letter-spacing: -.02em; }
-  header p { margin: 0; color: var(--muted); }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 20px;
-    padding: 24px; box-shadow: var(--shadow);
-  }
-  .step { display: flex; gap: 14px; margin-bottom: 22px; }
-  .num {
-    flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--soft); color: var(--accent);
-    font-weight: 700; display: grid; place-items: center; font-size: 14px; margin-top: 2px;
-  }
-  .step > div { flex: 1; min-width: 0; }
-  label { display: block; font-weight: 600; margin-bottom: 2px; }
-  .hint { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
-  .row { display: flex; gap: 8px; }
-  input[type=text] {
-    flex: 1; min-width: 0; font: inherit; padding: 11px 14px; border-radius: 12px; color: var(--ink);
-    border: 1.5px solid var(--line); background: var(--bg); outline: none; transition: border-color .15s, box-shadow .15s;
-  }
-  input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
-  button {
-    font: inherit; font-weight: 600; cursor: pointer; border-radius: 12px; padding: 11px 18px;
-    border: 1.5px solid var(--line); background: var(--card); color: var(--ink); transition: transform .08s, background .15s;
-  }
-  button:hover { background: var(--soft); }
-  button:active { transform: scale(.98); }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  .go {
-    width: 100%; font-size: 18px; padding: 15px; border: 0; color: var(--accent-ink);
-    background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 8px 22px rgba(124, 92, 240, .35);
-  }
-  .go:hover { background: linear-gradient(135deg, var(--accent), var(--accent2)); filter: brightness(1.08); }
-  .err { color: var(--bad); font-size: 14px; min-height: 20px; margin-top: 6px; }
-  .formats { margin-top: 18px; color: var(--muted); font-size: 13px; text-align: center; }
-  .formats b { color: var(--ink); font-weight: 600; }
+@font-face{font-family:'Instrument Serif';font-weight:400;font-display:swap;src:url(/fonts/instrument-serif-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:400;font-display:swap;src:url(/fonts/instrument-sans-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:500;font-display:swap;src:url(/fonts/instrument-sans-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:600;font-display:swap;src:url(/fonts/instrument-sans-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:400;font-display:swap;src:url(/fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:500;font-display:swap;src:url(/fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+:root{
+  --bg:#f9f5ef;--stage:#eeeae4;--card:#FFFFFF;--line:#e3dfda;--divider:#eeeae4;--cross:#908984;
+  --ink:#271e19;--ink2:#514944;--ink3:#665f59;--muted:#7b746f;--faint:#908984;--faint2:#b9b4af;
+  --btn:#271e19;--btn-hover:#3c342e;--accent:#6d51ac;--accent-bg:#6d51ac1a;
+  --ok:#3f8a4f;--ok-bg:#3f8a4f1a;--bad:#b0152c;--bad-bg:#b0152c1a;--warn:#846e2d;--warn-bg:#846e2d1a;
+  --serif:'Instrument Serif',Georgia,serif;--sans:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+  --shadow:0 1px 3px rgba(39,30,25,.06),0 12px 32px -16px rgba(39,30,25,.12);
+}
+*{box-sizing:border-box}html,body{margin:0;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--ink);text-decoration:none}a:hover{color:var(--accent)}
+::selection{background:#6d51ac33}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+button:disabled{cursor:not-allowed!important;opacity:.55}
+code{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.page{min-height:100vh;overflow-x:clip}
+.col{max-width:1232px;margin:0 auto;padding:0 16px}
+.frame{position:relative;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.x{position:absolute;width:11px;height:11px;z-index:2;background:linear-gradient(var(--cross),var(--cross)) center/1px 100% no-repeat,linear-gradient(var(--cross),var(--cross)) center/100% 1px no-repeat}
+.x.tl{left:-6px;top:-6px}.x.tr{right:-6px;top:-6px}.x.bl{left:-6px;bottom:-6px}.x.br{right:-6px;bottom:-6px}
+section,footer{border-top:1px solid var(--line)}
+section[id]{scroll-margin-top:72px}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:17px;color:var(--accent)}
+.eyebrow span{font-size:18px;line-height:1}
+.h2{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(40px,4.4vw,58px);line-height:1.05;letter-spacing:-.03em;text-wrap:balance}
+.serif{font-family:var(--serif);font-weight:400}
+.mono{font-family:var(--mono)}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn1{border:0;border-radius:2px;background:var(--btn);color:var(--bg);cursor:pointer;font-weight:500}
+.btn1:hover{background:var(--btn-hover);color:var(--bg)}
+.btn2{border:1px solid var(--line);border-radius:2px;background:var(--card);cursor:pointer;white-space:nowrap}
+.btn2:hover:not(:disabled){background:var(--stage)}
+.stage{border-top:1px solid var(--line);background:var(--stage);padding:40px;position:relative}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
 
-  #progress { display: none; }
-  .bar { height: 12px; border-radius: 99px; background: var(--soft); overflow: hidden; margin: 12px 0 8px; }
-  .bar i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .25s; }
-  .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; gap: 12px; }
-  .meta span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: right; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
-  .stat { background: var(--soft); border-radius: 14px; padding: 12px; text-align: center; }
-  .stat b { display: block; font-size: 26px; line-height: 1.1; }
-  .stat small { color: var(--muted); }
-  .ok b { color: var(--ok); } .bad b { color: var(--bad); }
-  .done-head { display: flex; align-items: center; gap: 12px; }
-  .check { width: 44px; height: 44px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; font-size: 24px; flex: none; }
-  .check.warn { background: var(--bad); }
-  .done-head h2 { margin: 0; font-size: 22px; }
-  .done-head p { margin: 0; color: var(--muted); word-break: break-all; font-size: 14px; }
-  .actions { display: flex; gap: 10px; }
-  .actions .go { flex: 2; font-size: 16px; padding: 13px; }
-  .actions button:not(.go) { flex: 1; }
-  details { margin-top: 14px; font-size: 14px; }
-  summary { cursor: pointer; color: var(--muted); }
-  details ul { margin: 8px 0 0; padding-left: 18px; max-height: 160px; overflow: auto; color: var(--muted); word-break: break-all; }
+/* nav */
+nav{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.navin{height:72px;padding:0 20px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;flex:none;white-space:nowrap;align-items:center;gap:10px;font-weight:600;font-size:19px;letter-spacing:-.03em}
+.pill{display:flex;flex:none;white-space:nowrap;align-items:center;gap:7px;height:26px;padding:0 9px;border-radius:3px;background:var(--ok-bg);font-size:13px;font-weight:500;color:var(--ok)}
+.pill i{width:6px;height:6px;background:var(--ok)}
+.links{display:flex;gap:20px;white-space:nowrap;margin-left:auto;font-size:15px}
+.start{flex:none;white-space:nowrap;height:42px;display:flex;align-items:center;padding:0 16px;margin-left:8px;font-size:15px}
 
-  /* folder picker */
-  dialog { border: 1px solid var(--line); border-radius: 20px; padding: 0; width: min(560px, 94vw); background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
-  dialog::backdrop { background: rgba(10, 8, 24, .55); backdrop-filter: blur(3px); }
-  .dlg-head { padding: 18px 20px 10px; }
-  .dlg-head h3 { margin: 0 0 8px; }
-  .crumb { font-size: 13px; color: var(--muted); word-break: break-all; }
-  .places { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .places button { padding: 5px 12px; font-size: 13px; border-radius: 99px; }
-  .list { height: 300px; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .item { display: flex; gap: 10px; align-items: center; padding: 10px 20px; cursor: pointer; border-bottom: 1px solid var(--line); }
-  .item:hover { background: var(--soft); }
-  .item.empty { color: var(--muted); cursor: default; justify-content: center; }
-  .dlg-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; gap: 10px; }
-  .dlg-foot .go { width: auto; font-size: 15px; padding: 11px 20px; box-shadow: none; }
-  @media (max-width: 480px) { .stats { grid-template-columns: 1fr 1fr 1fr; } .stat b { font-size: 20px; } }
+/* hero */
+.hero{position:relative;overflow:hidden;padding:56px 24px 64px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:22px;background:radial-gradient(#e3dfda 1px,transparent 1px) 0 0/7px 7px,var(--bg)}
+.hero h1{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(48px,6.4vw,84px);line-height:1;letter-spacing:-.035em;max-width:760px;text-wrap:balance}
+.hero svg{display:block;flex:none;width:calc(100% + 48px);max-width:none;height:240px;margin:-8px -24px 0;pointer-events:none;background:linear-gradient(180deg,rgba(247,228,210,0) 0%,#f7e4d2 78%)}
+.hero p{margin:0;font-size:21px;line-height:1.55;color:var(--ink2);max-width:600px;text-wrap:pretty}
+.hero .cta{margin-top:12px;height:62px;display:flex;align-items:center;padding:0 34px;font-size:20px}
+
+/* converter */
+.shead{padding:64px 40px 32px;display:flex;flex-direction:column;gap:14px}
+.ctop{height:56px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--divider)}
+.phase{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;margin-left:auto}
+.phase i{width:7px;height:7px;background:var(--faint2)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.cleft{padding:32px 28px;display:flex;flex-direction:column;gap:28px;min-width:0}
+.field{display:flex;flex-direction:column;gap:10px}
+.label{display:flex;gap:10px;align-items:baseline}
+.label .n{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.label .t{font-size:15px;font-weight:500}
+.label .h{font-size:13px;color:var(--muted);margin-left:auto}
+.row{display:flex;gap:8px}
+.input{flex:1;min-width:0;height:46px;font-family:var(--mono);font-size:13px;padding:0 14px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);outline:none}
+.input:focus{border-color:var(--ink)}
+.row .btn2{height:46px;font-size:15px;padding:0 18px}
+.row .btn2:hover:not(:disabled){background:var(--bg)}
+.go{height:56px;font-size:18px}
+.err{font-size:14px;color:var(--bad);border-left:2px solid var(--bad);padding:2px 0 2px 12px}
+.cright{border-left:1px solid var(--divider);background:var(--bg);padding:28px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.ptitle{font-family:var(--serif);font-size:24px;letter-spacing:-.02em}
+.count{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-left:auto}
+.bar{height:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.cur{font-family:var(--mono);font-size:12px;color:var(--ink3);direction:rtl;text-align:left}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:6px;background:var(--card)}
+.stats>div{padding:14px 16px}.stats>div+div{border-left:1px solid var(--divider)}
+.stats b{display:block;font-family:var(--serif);font-weight:400;font-size:34px;line-height:1}
+.stats small{display:block;font-size:13px;color:var(--ink3);margin-top:4px}
+.outpath{font-family:var(--mono);font-size:12px;color:var(--ink3);word-break:break-all}
+.tree{border:1px solid var(--line);border-radius:6px;background:var(--card);overflow:hidden}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr) 64px;gap:8px;align-items:center;padding:8px 14px;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--divider)}
+.trow.head{padding:11px 14px;color:var(--ink3);font-weight:500}
+.trow .a{color:var(--faint2)}.trow .s{color:var(--ink3)}
+.tlist{max-height:240px;overflow:auto}
+.tag{justify-self:end;font-family:var(--sans);font-size:12px;padding:1px 7px;border-radius:3px}
+.tag.done{background:var(--ok-bg);color:var(--ok)}.tag.renamed{background:var(--accent-bg);color:var(--accent)}
+.tag.skipped{background:var(--bad-bg);color:var(--bad)}.tag.working{background:var(--stage);color:var(--ink3)}
+.tnote{padding:9px 14px;font-size:13px;color:var(--muted)}
+.report{border:1px solid var(--line);border-radius:6px;background:var(--card);overflow:hidden}
+.report>button{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:transparent;font-size:14px;cursor:pointer;text-align:left}
+.caret{font-family:var(--mono);font-size:12px;color:var(--faint);width:10px}
+.fname{font-family:var(--mono);font-size:12px;font-weight:500}
+.badge{margin-left:auto;font-size:12px;padding:1px 7px;border-radius:3px;background:var(--bad-bg);color:var(--bad)}
+.flist{border-top:1px solid var(--divider);max-height:180px;overflow:auto;padding:4px 0}
+.fail{margin:8px 14px 8px 34px;padding:2px 0 2px 12px;border-left:2px solid var(--bad);display:flex;flex-direction:column;gap:3px}
+.fail .f{font-family:var(--mono);font-size:12px;word-break:break-all}
+.fail .r{font-size:13px;color:var(--ink3);word-break:break-word}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts .btn1{flex:2;min-width:180px;height:46px;font-size:16px}
+.acts .btn2{flex:1;min-width:140px;height:46px;font-size:16px}
+.cancel{align-self:flex-start;height:42px;font-size:15px;padding:0 18px}
+
+/* how */
+.howhead{padding:80px 40px 52px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px}
+.how{position:relative;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line)}
+.how>div{background:var(--bg);padding:26px 24px 28px;display:flex;flex-direction:column;gap:10px}
+.how .top{display:flex;justify-content:space-between;align-items:flex-start}
+.how .tile{width:56px;height:56px;flex:none;display:grid;place-items:center;background:var(--accent-bg);color:var(--accent)}
+.how .num{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.how h3{margin:6px 0 0;font-family:var(--serif);font-weight:400;font-size:25px;line-height:1.1;letter-spacing:-.02em}
+.how p{margin:0;font-size:15px;line-height:1.65;color:var(--ink2)}
+
+/* compare */
+.cmp{display:grid;grid-template-columns:minmax(110px,.55fr) minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid var(--divider)}
+.cmp>div{padding:22px 24px}
+.cmp .k{font-size:13px;font-weight:500;color:var(--ink3)}
+.cmp.h>div{padding:20px 24px;font-family:var(--serif);font-size:24px;letter-spacing:-.02em}
+.cmp .cell{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.chip{font-size:13px;font-weight:500;padding:2px 8px;border-radius:3px}
+.chip.g{background:var(--ok-bg);color:var(--ok)}.chip.r{background:var(--bad-bg);color:var(--bad)}
+.cmp .d{font-size:14px;line-height:1.55;color:var(--ink2)}.cmp .d.m{color:var(--muted)}
+
+/* formats */
+.fmt{padding:104px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:48px;align-items:start}
+.fchips{display:flex;flex-wrap:wrap;gap:8px;padding-top:8px}
+.fchips span{font-family:var(--mono);font-size:13px;height:34px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:var(--card)}
+
+/* docs */
+.doc{padding:72px 40px 96px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:48px;align-items:start}
+.doc .side{display:flex;flex-direction:column;gap:18px}
+.doc .back{align-self:flex-start;font-size:15px;color:var(--ink3)}
+.doc h1{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(44px,5vw,64px);line-height:1;letter-spacing:-.035em}
+.doc .meta{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.doc .body{grid-column:span 2;min-width:0;max-width:720px;display:flex;flex-direction:column;gap:14px}
+.doc .body p{margin:0;font-size:16px;line-height:1.7;color:var(--ink2);text-wrap:pretty}
+.doc .body h2{margin:24px 0 0;font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15;letter-spacing:-.02em}
+.doc .body code{font-size:13.5px}
+.lic{background:var(--stage);padding:24px;border-radius:8px}
+.lic pre{margin:0;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:24px;font-family:var(--mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.form{background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 3px rgba(39,30,25,.06);padding:28px;display:flex;flex-direction:column;gap:18px}
+.form .f{display:flex;flex-direction:column;gap:8px}
+.form label,.form .lbl{font-size:15px;font-weight:500}
+.form input,.form textarea{font:inherit;font-size:15px;padding:0 14px;height:46px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);outline:none}
+.form textarea{height:auto;line-height:1.6;padding:12px 14px;resize:vertical}
+.form input:focus,.form textarea:focus{border-color:var(--ink)}
+.topic{font-size:14px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:3px;background:var(--bg);cursor:pointer}
+.topic.on{background:var(--btn);color:var(--bg);border-color:var(--btn)}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ways a{background:var(--card);padding:20px;display:flex;flex-direction:column;gap:6px}
+.ways a:hover{background:var(--bg)}
+
+/* footer */
+.foot{padding:72px 40px 56px;display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;align-items:flex-start}
+.foot h4{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:1.1;letter-spacing:-.025em;max-width:380px}
+.fcols{display:flex;gap:64px;flex-wrap:wrap}
+.fcols>div{display:flex;flex-direction:column;gap:12px}
+.fcols .eb{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--accent)}
+.legal{border-top:1px solid var(--line);padding:20px 40px;display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:14px;color:var(--ink3);position:relative}
+
+/* picker */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(39,30,25,.4);display:grid;place-items:center;padding:24px}
+.dialog{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 24px 64px -16px rgba(39,30,25,.35);overflow:hidden}
+.dhead{padding:20px 22px 16px;display:flex;flex-direction:column;gap:10px}
+.dhead h3{margin:0;font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:-.02em}
+.crumb{font-family:var(--mono);font-size:12px;color:var(--ink3);word-break:break-all}
+.places{display:flex;gap:6px;flex-wrap:wrap}
+.places button{font-size:13px;height:30px;padding:0 11px;border:1px solid var(--line);border-radius:3px;background:var(--bg);cursor:pointer}
+.places button:hover{background:var(--stage)}
+.dirs{height:min(300px,40vh);overflow:auto;border-top:1px solid var(--divider);border-bottom:1px solid var(--divider)}
+.dir{display:flex;align-items:center;gap:12px;padding:11px 22px;border-bottom:1px solid var(--divider);cursor:pointer;font-size:15px}
+.dir:hover{background:var(--bg)}
+.dir span{font-family:var(--mono);font-size:12px;color:var(--faint2)}
+.empty{padding:40px 22px;text-align:center;color:var(--ink3);font-size:14px}
+.dfoot{display:flex;gap:8px;align-items:center;padding:14px 22px}
+.dfoot button{height:40px;font-size:15px;padding:0 14px}
+@media (max-width:760px){.links{display:none}.stage{padding:20px}.cgrid{grid-template-columns:1fr}.cright{border-left:0;border-top:1px solid var(--divider)}.cmp{grid-template-columns:1fr}.doc .body{grid-column:auto}}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <img class="logo" src="/favicon.svg" alt="">
-    <h1>Any File To MD</h1>
-    <p>Turn a whole folder into clean Markdown. Your originals are never touched.</p>
-  </header>
+<div class="page">
 
-  <section class="card" id="setup">
-    <div class="step">
-      <span class="num">1</span>
-      <div>
-        <label for="src">Pick a folder to convert</label>
-        <div class="hint">Paste a path, or browse. Subfolders are included.</div>
-        <div class="row">
-          <input type="text" id="src" placeholder="C:\Users\you\Documents\My Files" spellcheck="false" autocomplete="off">
-          <button id="browseSrc" type="button">Browse…</button>
+<nav>
+  <div class="col"><div class="frame"><span class="x bl"></span><span class="x br"></span>
+    <div class="navin">
+      <a href="#top" class="brand">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="#271e19" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" style="flex:none">
+          <path d="M2.75 4.75h7.5l3.5 3.5v19h-11z"/><path d="M10.25 4.75v3.5h3.5"/>
+          <path d="M5.25 13.25h5.5M5.25 17h4M5.25 20.75h5.5" stroke-width="1.25"/>
+          <path d="M16 2.5v27" stroke-width="1" stroke-dasharray="1.5 2"/>
+          <path d="M29.25 4.75h-7.5l-3.5 3.5v19h11z"/><path d="M21.75 4.75v3.5h-3.5"/>
+          <path d="M21.6 13.5l-.9 8M24.6 13.5l-.9 8M20.4 16h5.2M20 19h5.2" stroke="#6d51ac" stroke-width="1.25"/>
+        </svg>
+        Any File To MD
+      </a>
+      <span class="pill"><i></i>100% Local · Offline</span>
+      <div class="links"><a href="#converter">Converter</a><a href="#how">How It Works</a><a href="#formats">Supported Formats</a></div>
+      <a href="#converter" class="btn1 start">Start converting</a>
+    </div>
+  </div></div>
+</nav>
+
+<div id="main">
+<header id="top">
+  <div class="col"><div class="frame"><div class="hero">
+    <span class="eyebrow"><span>+</span>Local-only Markdown converter</span>
+    <h1>Point at a folder. Get clean Markdown.</h1>
+    <svg aria-hidden="true" viewBox="0 0 1200 340" preserveAspectRatio="xMidYMax slice" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M217 70h6M220 67v6M327 40h6M330 37v6M877 50h6M880 47v6M1007 90h6M1010 87v6M147 120h6M150 117v6M1077 40h6M1080 37v6" stroke="#b9b4af" stroke-width="1"/>
+      <circle cx="600" cy="196" r="118" stroke="#846e2d" stroke-opacity="0.28" stroke-width="1"/><circle cx="600" cy="196" r="142" stroke="#846e2d" stroke-opacity="0.21" stroke-width="1" stroke-dasharray="2 5"/><circle cx="600" cy="196" r="168" stroke="#846e2d" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="2 5"/>
+      <circle cx="600" cy="196" r="94" fill="#fbe3bf" fill-opacity=".7" stroke="#846e2d" stroke-opacity=".55" stroke-width="1.1"/>
+      <path d="M524 150H676M520 158H680M516.9 166H683.1M514.6 174H685.4M513 182H687M512.2 190H687.8" stroke="#846e2d" stroke-opacity=".22" stroke-width="1"/>
+      <path d="M468 92q5 -5 10 0q5 -5 10 0M488 82q4 -4 8 0q4 -4 8 0M506 96q3.5 -3.5 7 0q3.5 -3.5 7 0M790 70q4.5 -4.5 9 0q4.5 -4.5 9 0M812 80q3.5 -3.5 7 0q3.5 -3.5 7 0" stroke="#665f59" stroke-width="1.1"/>
+      <path d="M0 222 L60 206 L118 214 L180 184 L226 198 L290 160 L338 178 L392 150 L444 172 L500 162 L540 176 L660 176 L700 158 L752 170 L806 144 L862 172 L916 156 L978 186 L1040 166 L1096 190 L1150 178 L1200 196 V340 H0Z" fill="#f4dfcb" stroke="#b9b4af" stroke-width="1"/>
+      <path d="M0 262 L84 240 L150 250 L236 210 L296 228 L362 196 L426 222 L488 182 L530 160 L566 132 L600 100 L622 116 L640 112 L668 142 L712 172 L770 204 L826 186 L884 216 L948 196 L1014 230 L1080 210 L1140 226 L1200 218 V340 H0Z" fill="#f8ebdf" stroke="#665f59" stroke-width="1.25"/>
+      <path d="M631.3 121.5l-7 14M640.5 127l-7.9 15.9M649.8 132.5l-8.8 17.6M659 138l-9.6 19.1M668.3 143.5l-10.2 20.3M677.5 149l-10.6 21.2M686.8 154.5l-10.9 21.8M696 160l-11 22M705.3 165.5l-10.9 21.8M714.5 171l-10.6 21.2M723.8 176.5l-10.2 20.3M733 182l-9.6 19.1M742.3 187.5l-8.8 17.6M751.5 193l-7.9 15.9M760.8 198.5l-7 14M685 152.3l-4.6 9.3M702 162.7l-5.6 11.3M719 173l-6 12M736 183.3l-5.6 11.3M753 193.7l-4.6 9.3M372.7 200.3l-3.7 9.3M383.3 204.7l-4.5 11.3M394 209l-4.8 12M404.7 213.3l-4.5 11.3M415.3 217.7l-3.7 9.3M248 213.6l-3.3 8.1M260 217.2l-3.9 9.8M272 220.8l-3.9 9.8M284 224.4l-3.3 8.1M959 201.7l-3.7 9.3M970 207.3l-4.5 11.3M981 213l-4.8 12M992 218.7l-4.5 11.3M1003 224.3l-3.7 9.3M1036 249.6l-2.9 7.3M1048 253.2l-3.5 8.8M1060 256.8l-3.5 8.8M1072 260.4l-2.9 7.3M199 261.5l-2.8 6.9M212 265l-3.2 8M225 268.5l-2.8 6.9" stroke="#908984" stroke-width=".9"/>
+      <path d="M566 132 L578 128 L584 138 L594 124 L602 136 L612 122 L622 116 M640 112 L646 124 L656 128 L668 142" stroke="#271e19" stroke-width="1.1"/>
+      <path d="M600 100 L598 126 L604 150 L596 178 M640 112 L636 136 M488 182 L500 200 L496 222 M806 144 L812 160 M392 150 L398 168" stroke="#7b746f" stroke-width=".9"/>
+      <path d="M0 292 L58 276 L118 286 L186 258 L238 272 L300 254 L366 280 L440 296 L600 306 L760 296 L834 278 L896 252 L956 268 L1024 246 L1084 264 L1146 252 L1200 262 V340 H0Z" fill="#f9f5ef" stroke="#271e19" stroke-width="1.4"/>
+      <path d="M906 254.7l-3.1 7.8M916 257.3l-3.8 9.4M926 260l-4 10M936 262.7l-3.8 9.4M946 265.3l-3.1 7.8M311 258.3l-3.1 7.8M322 262.7l-3.8 9.4M333 267l-4 10M344 271.3l-3.8 9.4M355 275.7l-3.1 7.8" stroke="#7b746f" stroke-width=".9"/>
+      <path d="M480 312h96M624 312h96M512 318h70.4M617.6 318h70.4M540 324h48M612 324h48M564 330h28.8M607.2 330h28.8M582 336h14.4M603.6 336h14.4" stroke="#846e2d" stroke-opacity=".6" stroke-width="1.1"/>
+      <path d="M0 318 C120 310 220 322 340 316 S520 308 560 316 M640 316 C700 308 820 322 940 314 S1120 308 1200 316 M0 330 C150 324 260 336 400 330 S520 326 540 330 M660 330 C720 326 860 336 1000 330 S1140 326 1200 330" stroke="#b9b4af" stroke-width="1" stroke-dasharray="3 4"/>
+    </svg>
+    <p>Mirrors your folder structure into AI-ready Markdown. Your originals are never touched.</p>
+    <a href="#converter" class="btn1 cta">Convert a folder</a>
+  </div></div></div>
+</header>
+
+<section id="converter">
+  <div class="col"><div class="frame"><span class="x tl"></span><span class="x tr"></span>
+    <div class="shead">
+      <span class="eyebrow"><span>+</span>Converter</span>
+      <h2 class="h2" style="font-size:clamp(36px,4.2vw,54px)">Convert a folder</h2>
+    </div>
+    <div class="stage"><span class="x tl"></span><span class="x tr"></span>
+      <div class="card">
+        <div class="ctop">
+          <span class="serif" style="font-size:20px;letter-spacing:-.01em">Markdown converter</span>
+          <span class="mono" style="font-size:12px;color:var(--faint)">127.0.0.1</span>
+          <span class="phase"><i id="dot"></i><span id="phase">Ready</span></span>
+        </div>
+        <div class="cgrid">
+          <div class="cleft">
+            <div class="field">
+              <div class="label"><span class="n">01</span><span class="t">Source folder</span><span class="h">Subfolders included</span></div>
+              <div class="row"><input class="input" id="src" type="text" placeholder="C:\Users\you\Documents\My Files" spellcheck="false" autocomplete="off"><button type="button" class="btn2" id="browseSrc">Browse…</button></div>
+            </div>
+            <div class="field">
+              <div class="label"><span class="n">02</span><span class="t">Output folder</span><span class="h" id="outHint">Defaults to &lt;folder&gt;-markdown</span></div>
+              <div class="row"><input class="input" id="out" type="text" placeholder="Filled in automatically" spellcheck="false" autocomplete="off"><button type="button" class="btn2" id="browseOut">Change</button></div>
+            </div>
+            <div class="field">
+              <div class="label"><span class="n">03</span><span class="t">Convert</span></div>
+              <button type="button" class="btn1 go" id="go">Convert to Markdown</button>
+              <div class="err" id="err" role="alert" hidden></div>
+            </div>
+          </div>
+          <div class="cright">
+            <div style="display:flex;align-items:baseline;gap:12px"><span class="ptitle" id="ptitle">Mirror preview</span><span class="count" id="count"></span></div>
+            <div id="barWrap" style="display:flex;flex-direction:column;gap:8px" hidden><div class="bar"><i id="fill"></i></div><div class="cur ell" id="cur">&nbsp;</div></div>
+            <div id="statsWrap" style="display:flex;flex-direction:column;gap:16px" hidden>
+              <div class="stats"><div><b id="sOk">0</b><small>converted</small></div><div><b id="sBad">0</b><small>skipped</small></div><div><b id="sTime">0s</b><small>time</small></div></div>
+              <div class="outpath" id="outPath"></div>
+            </div>
+            <div class="tree">
+              <div class="trow head"><span class="ell" id="tSrc">source/</span><span class="a">→</span><span class="ell" id="tOut">source-markdown/</span><span></span></div>
+              <div class="tlist" id="tlist"></div>
+              <div class="tnote" id="tnote"></div>
+            </div>
+            <div class="report" id="report" hidden>
+              <button type="button" id="reportBtn"><span class="caret" id="caret">▾</span><span class="fname">_conversion-report.md</span><span class="badge" id="failSum"></span></button>
+              <div class="flist" id="failList"></div>
+            </div>
+            <button type="button" class="btn2 cancel" id="cancel" hidden>Cancel</button>
+            <div class="acts" id="acts" hidden>
+              <button type="button" class="btn1" id="open">Open the Markdown folder</button>
+              <button type="button" class="btn2" id="again">Convert another</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="step">
-      <span class="num">2</span>
-      <div>
-        <label for="out">Where should the Markdown go?</label>
-        <div class="hint">A new copy of the folder. We suggest one next to the original.</div>
-        <div class="row">
-          <input type="text" id="out" placeholder="Filled in automatically" spellcheck="false" autocomplete="off">
-          <button id="browseOut" type="button">Browse…</button>
+  </div></div>
+</section>
+
+<section id="how">
+  <div class="col"><div class="frame"><span class="x tl"></span><span class="x tr"></span>
+    <div class="howhead">
+      <span class="eyebrow"><span>+</span>How it works</span>
+      <h2 class="h2" style="max-width:620px">A mirrored copy of your folder, in Markdown</h2>
+    </div>
+    <div class="how">
+      <div><div class="top"><span class="tile"><svg width="38" height="38" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 11.5h11l4 4v19h-15z" stroke-dasharray="2 2"/><path d="M30.5 11.5v4h4" stroke-dasharray="2 2"/><path d="M25 20.5l-1 7.5M28.75 20.5l-1 7.5M23 22.75h7.25M22.5 25.75h7.25" stroke-width="1.2"/><path d="M4.5 4.5h11l4 4v19h-15z" fill="#efe9ee"/><path d="M15.5 4.5v4h4"/><path d="M8 13h8M8 16.25h8M8 19.5h5" stroke-width="1.2"/><rect x="11.5" y="25.5" width="7.5" height="6.5" rx="1.2" fill="#efe9ee"/><path d="M13.25 25.5v-1.6a2 2 0 0 1 4 0v1.6M15.25 28v1.4" stroke-width="1.2"/><path d="M22 5.25c4.25-.5 7.75 1 9.25 4.25" stroke-width="1.2"/><path d="M28.75 9.25l2.6.6.6-2.6" stroke-width="1.2"/></svg></span><span class="num">01</span></div>
+        <h3>Originals Never Touched</h3><p>Non-destructive mirroring into a separate <code>-markdown</code> folder.</p></div>
+      <div><div class="top"><span class="tile"><svg width="38" height="38" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 15.5h15a4.6 4.6 0 0 0 .5-9.17 6.2 6.2 0 0 0-11.7-1.33A4.9 4.9 0 0 0 12.5 15.5z"/><path d="M20 25v-6M17.5 21.5l2.5-2.5 2.5 2.5"/><path d="M8 2.5l24 16" stroke="#b0152c"/><rect x="8" y="24.5" width="24" height="10" rx="1.2"/><path d="M4 37.5h32l-2.5-3h-27z"/><path d="M16.5 29.5l2.25 2.25 4.5-4.5" stroke-width="1.2"/><path d="M11 27.5h2.5M11 30h2.5M26.5 27.5h2.5M26.5 30h2.5" stroke-width="1.1"/></svg></span><span class="num">02</span></div>
+        <h3>Zero Uploads, Zero Keys</h3><p>Runs completely on localhost with no external APIs.</p></div>
+      <div><div class="top"><span class="tile"><svg width="38" height="38" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5h8l3 3v10h-11z"/><path d="M10.5 4.5v3h3"/><path d="M5 10h6M5 12.75h6M5 15.25h3.5" stroke-width="1.1"/><path d="M2.5 22.5h8l3 3v10h-11z"/><path d="M10.5 22.5v3h3"/><path d="M5 28h6M5 30.5h6M5 33h6M8 27v6.5" stroke-width="1.1"/><path d="M15.5 11h7M15.5 29h7" stroke-width="1.2"/><path d="M20.25 8.75L22.5 11l-2.25 2.25M20.25 26.75L22.5 29l-2.25 2.25" stroke-width="1.2"/><path d="M24.5 4.5h10l3 3v10h-13z"/><path d="M34.5 4.5v3h3"/><path d="M29 9l-.75 6M32 9l-.75 6M27.5 10.75h5.75M27.25 13.25h5.75" stroke-width="1.1"/><path d="M24.5 22.5h10l3 3v10h-13z"/><path d="M34.5 22.5v3h3"/><path d="M29 27l-.75 6M32 27l-.75 6M27.5 28.75h5.75M27.25 31.25h5.75" stroke-width="1.1"/><path d="M31 18.75v2.5" stroke-dasharray="1 1.6" stroke-width="1.2"/></svg></span><span class="num">03</span></div>
+        <h3>Smart Collision Handling</h3><p>Automatically names <code>a.pdf.md</code> and <code>a.docx.md</code> so nothing overwrites.</p></div>
+      <div><div class="top"><span class="tile"><svg width="38" height="38" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.25l1.75 1.75 3.25-3.5M3.5 26.25l1.75 1.75 3.25-3.5" stroke-width="1.3"/><path d="M3.75 14.5l4 4M7.75 14.5l-4 4" stroke="#b0152c" stroke-width="1.3"/><rect x="11.5" y="4.5" width="5" height="6" rx=".8" stroke-width="1.1"/><path d="M19.5 6.5h11M19.5 9h7" stroke-width="1.1"/><rect x="11.5" y="13.5" width="5" height="6" rx=".8" stroke-width="1.1" stroke="#b0152c"/><path d="M19.5 15.5h9M19.5 18h5" stroke-width="1.1" stroke="#b0152c" stroke-dasharray="1.6 1.6"/><rect x="11.5" y="23.5" width="5" height="6" rx=".8" stroke-width="1.1"/><path d="M19.5 25.5h11M19.5 28h8" stroke-width="1.1"/><path d="M35.5 5v20.5" stroke-dasharray="1.4 2" stroke-width="1.2"/><path d="M33.5 23.5l2 2.25 2-2.25" stroke-width="1.2"/><path d="M3.5 35h33" stroke-width="1" stroke-opacity=".35"/><path d="M3.5 35h24" stroke-width="2.2"/></svg></span><span class="num">04</span></div>
+        <h3>Resilient Batch Processing</h3><p>One bad file never stops the run; errors are logged to <code>_conversion-report.md</code>.</p></div>
+    </div>
+  </div></div>
+</section>
+
+<section>
+  <div class="col"><div class="frame"><span class="x tl"></span><span class="x tr"></span>
+    <div style="padding:104px 40px 64px;display:flex;flex-direction:column;gap:18px">
+      <span class="eyebrow"><span>+</span>Any File To MD vs. the usual options</span>
+      <h2 class="h2" style="max-width:700px">What changes when conversion stays on your machine</h2>
+    </div>
+    <div class="stage"><span class="x tl"></span><span class="x tr"></span>
+      <div class="card" style="box-shadow:0 1px 3px rgba(39,30,25,.06)" id="compare">
+        <div class="cmp h"><div></div><div>With Any File To MD</div><div style="color:var(--muted)">Manual / Cloud Converters</div></div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section id="formats">
+  <div class="col"><div class="frame"><span class="x tl"></span><span class="x tr"></span>
+    <div class="fmt">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <span class="eyebrow"><span>+</span>Supported formats</span>
+        <h2 class="h2">Documents, data, mail and code</h2>
+        <p style="margin:0;font-size:16px;line-height:1.65;color:var(--ink2);max-width:440px;text-wrap:pretty">Code and config files are wrapped in fenced code blocks. Images give metadata only. Scanned PDFs without a text layer produce little or no text, because there is no OCR.</p>
+      </div>
+      <div class="fchips" id="formatsList"></div>
+    </div>
+  </div></div>
+</section>
+</div>
+
+<section id="doc-license" class="docview" hidden><div class="col"><div class="frame"><div class="doc">
+  <div class="side"><a href="#top" class="back">← Back to the converter</a><span class="eyebrow"><span>+</span>License</span><h1>Free for anyone to use</h1><span class="meta">MIT License · 2026</span></div>
+  <div class="body">
+    <p>Any File To MD is open source under the MIT License. You can use it for personal or commercial work, change it, share it, and ship it inside your own products. The only condition is that the copyright notice and license text stay with copies of the software.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px"><span class="chip g">Commercial use</span><span class="chip g">Modification</span><span class="chip g">Distribution</span><span class="chip g">Private use</span><span class="chip r">No warranty</span></div>
+    <div class="lic"><pre>MIT License
+
+Copyright (c) 2026 Any File To MD contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre></div>
+    <h2>Third-party components</h2>
+    <p>Conversion uses Microsoft's <code>markitdown</code>, also MIT licensed. The launcher downloads <code>uv</code> (MIT / Apache-2.0) and the Python packages listed in <code>pyproject.toml</code>, each under its own license.</p>
+  </div>
+</div></div></div></section>
+
+<section id="doc-terms" class="docview" hidden><div class="col"><div class="frame"><div class="doc">
+  <div class="side"><a href="#top" class="back">← Back to the converter</a><span class="eyebrow"><span>+</span>Terms of Use</span><h1>Terms of Use</h1><span class="meta">Last updated 14 November 2026</span></div>
+  <div class="body">
+    <p>These terms cover your use of the Any File To MD app. By running it, you agree to them.</p>
+    <h2>1. Licence to use</h2><p>The software is provided under the MIT License. Anyone may use, copy, modify and distribute it, including for commercial purposes, as described on the License page.</p>
+    <h2>2. Your files</h2><p>The app reads files from the folder you choose and writes Markdown to a separate output folder. It never edits, moves or deletes your originals. You are responsible for having the right to convert the files you select, and for checking the output before relying on it.</p>
+    <h2>3. Conversion accuracy</h2><p>Conversion quality depends on the source file. Scanned PDFs without a text layer, complex layouts and protected files may convert partially or not at all. Files that fail are listed in the app and in <code>_conversion-report.md</code>.</p>
+    <h2>4. No warranty</h2><p>The software is provided "as is", without warranty of any kind. The authors are not liable for any claim, damages or other liability arising from its use, including data loss. Keep backups of important files.</p>
+    <h2>5. Third-party software</h2><p>The app relies on open-source components such as markitdown and uv. Those components are governed by their own licenses.</p>
+    <h2>6. Changes</h2><p>These terms may be updated with new releases. The version included with your copy of the app applies to that copy.</p>
+  </div>
+</div></div></div></section>
+
+<section id="doc-privacy" class="docview" hidden><div class="col"><div class="frame"><div class="doc">
+  <div class="side"><a href="#top" class="back">← Back to the converter</a><span class="eyebrow"><span>+</span>Privacy Policy</span><h1>Privacy Policy</h1><span class="meta">Last updated 14 November 2026</span></div>
+  <div class="body">
+    <p>Any File To MD is built so that your documents never leave your computer. There are no accounts, no analytics and no tracking.</p>
+    <h2>What the app collects</h2><p>Nothing. The app does not collect, store or transmit personal information, usage data or file contents.</p>
+    <h2>Where your files go</h2><p>Files are read from your source folder and written to the output folder you choose, both on your own disk. The built-in server only listens on <code>127.0.0.1</code>, rejects requests addressed to any other host, and requires a random token generated each time the app starts.</p>
+    <h2>Network access</h2><p>The first launch downloads the uv helper, Python and the converter packages. After that, the app works fully offline. Conversions never contact an external service, and no API keys are used.</p>
+    <h2>Cookies and storage</h2><p>The app sets no cookies and keeps no history of folders or files between sessions.</p>
+    <h2>Questions</h2><p>If anything here is unclear, use the Contact page to reach the maintainers.</p>
+  </div>
+</div></div></div></section>
+
+<section id="doc-contact" class="docview" hidden><div class="col"><div class="frame"><div class="doc">
+  <div class="side"><a href="#top" class="back">← Back to the converter</a><span class="eyebrow"><span>+</span>Contact</span><h1>Contact us</h1><span class="meta">Usually answered within a few days</span></div>
+  <div class="body">
+    <p>Any File To MD is maintained in the open on GitHub. Bug reports, format requests and questions all go through the repository, so others with the same question can find the answer.</p>
+    <div class="lic" style="margin-top:10px">
+      <div class="form">
+        <div class="f"><span class="lbl">Topic</span><div style="display:flex;gap:6px;flex-wrap:wrap" id="topics"></div></div>
+        <div class="f"><label for="cTitle">Subject</label><input id="cTitle" type="text" placeholder="Short summary"></div>
+        <div class="f"><label for="cBody">Message</label><textarea id="cBody" rows="6" placeholder="What happened, and which file types were involved? Please don't attach private documents."></textarea></div>
+        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+          <a id="issueLink" href="#" target="_blank" rel="noopener" class="btn1" style="height:50px;display:flex;align-items:center;padding:0 22px;font-size:16px">Continue on GitHub</a>
+          <span style="font-size:13px;color:var(--muted);max-width:320px">Opens a prefilled issue in your browser. Nothing is sent until you submit it there.</span>
         </div>
       </div>
     </div>
-    <button class="go" id="go" type="button">Convert to Markdown</button>
-    <div class="err" id="err" role="alert"></div>
-    <div class="formats"><b>Works with</b> PDF · Word · PowerPoint · Excel · CSV · HTML · JSON · XML · EPUB · ZIP · Outlook · images · code &amp; text files</div>
-  </section>
-
-  <section class="card" id="progress">
-    <div id="running">
-      <div class="done-head"><div><h2 id="runTitle">Converting…</h2></div></div>
-      <div class="bar"><i id="fill"></i></div>
-      <div class="meta"><span id="count">0 / 0</span><span id="cur"></span></div>
-      <div class="actions" style="margin-top:18px"><button id="cancel" type="button">Cancel</button></div>
+    <h2>Other ways to reach us</h2>
+    <div class="ways">
+      <a href="https://github.com/pransharma2/Any-File-To-MD/issues" target="_blank" rel="noopener"><span class="serif" style="font-size:22px">Issues</span><span class="mono" style="font-size:12px;color:var(--ink3)">Bugs and format requests</span></a>
+      <a href="https://github.com/pransharma2/Any-File-To-MD" target="_blank" rel="noopener"><span class="serif" style="font-size:22px">Source code</span><span class="mono" style="font-size:12px;color:var(--ink3)">pransharma2/Any-File-To-MD</span></a>
     </div>
-    <div id="finished" style="display:none">
-      <div class="done-head">
-        <div class="check" id="icon">✓</div>
-        <div><h2 id="doneTitle">All done</h2><p id="doneOut"></p></div>
-      </div>
-      <div class="stats">
-        <div class="stat ok"><b id="sOk">0</b><small>converted</small></div>
-        <div class="stat bad"><b id="sBad">0</b><small>skipped</small></div>
-        <div class="stat"><b id="sTime">0s</b><small>time</small></div>
-      </div>
-      <div class="actions">
-        <button class="go" id="open" type="button">Open the Markdown folder</button>
-        <button id="again" type="button">Convert another</button>
-      </div>
-      <details id="fails"><summary id="failSum"></summary><ul id="failList"></ul></details>
-    </div>
-  </section>
-</main>
+  </div>
+</div></div></div></section>
 
-<dialog id="dlg">
-  <div class="dlg-head">
-    <h3 id="dlgTitle">Choose a folder</h3>
-    <div class="crumb" id="crumb"></div>
-    <div class="places" id="places"></div>
+<footer>
+  <div class="col"><div class="frame"><span class="x tl"></span><span class="x tr"></span>
+    <div class="foot">
+      <h4>Point at a folder. Get clean Markdown.</h4>
+      <div class="fcols">
+        <div><span class="eb"><span>+</span>Legal</span><a href="#license">License</a><a href="#terms">Terms of Use</a><a href="#privacy">Privacy Policy</a></div>
+        <div><span class="eb"><span>+</span>Contact</span><a href="#contact">Contact us</a><a href="https://github.com/pransharma2/Any-File-To-MD" target="_blank" rel="noopener">GitHub</a></div>
+        <div><span class="eb"><span>+</span>App</span><a href="#converter">Converter</a><a href="#how">How It Works</a><a href="#formats">Supported Formats</a></div>
+      </div>
+    </div>
+    <div class="legal"><span class="x tl"></span><span class="x tr"></span>
+      <span style="display:flex;gap:20px;flex-wrap:wrap"><span>© 2026 Any File To MD contributors · <a href="#license" style="text-decoration:underline;text-underline-offset:3px">MIT License</a></span><span>Powered by markitdown · Localhost-only</span></span>
+      <span class="mono" style="font-size:12px" id="host"></span>
+    </div>
+  </div></div>
+</footer>
+</div>
+
+<div class="scrim" id="picker" hidden>
+  <div class="dialog" role="dialog" aria-labelledby="pickTitle">
+    <div class="dhead"><h3 id="pickTitle">Choose a folder</h3><div class="crumb" id="crumb"></div><div class="places" id="places"></div></div>
+    <div class="dirs" id="dirs"></div>
+    <div class="dfoot">
+      <button type="button" class="btn2" id="up">↑ Up</button><span style="flex:1"></span>
+      <button type="button" class="btn2" id="pickCancel">Cancel</button>
+      <button type="button" class="btn1" id="choose">Use this folder</button>
+    </div>
   </div>
-  <div class="list" id="list"></div>
-  <div class="dlg-foot">
-    <button id="up" type="button">↑ Up</button>
-    <span style="flex:1"></span>
-    <button id="dlgCancel" type="button">Cancel</button>
-    <button class="go" id="choose" type="button">Use this folder</button>
-  </div>
-</dialog>
+</div>
 
 <script>
-const TOKEN = "__TOKEN__";
+const TOKEN = "__TOKEN__"; // replaced by server.py
 const $ = id => document.getElementById(id);
-const api = async (path, body) => {
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const baseName = p => (p || "").replace(/[\\/]+$/, "").split(/[\\/]/).pop() || "";
+async function api(path, body) {
   const res = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: { "X-Token": TOKEN, ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
@@ -196,98 +470,166 @@ const api = async (path, body) => {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Something went wrong");
   return data;
-};
-const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
 
-/* ---------- output auto-suggestion ---------- */
-let outTouched = false;
-$("out").addEventListener("input", () => { outTouched = true; });
-let suggestTimer;
-$("src").addEventListener("input", () => {
-  clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(async () => {
-    const v = $("src").value.trim();
-    if (!v || outTouched) return;
+/* static content */
+const COMPARE = [
+  { k: "Privacy", a: "100% Local", ad: "Files are read and written on this computer. The server only answers 127.0.0.1.", b: "Cloud Uploads", bd: "Documents leave your machine and sit on someone else's servers." },
+  { k: "Structure", a: "Exact Folder Mirror", ad: "Every subfolder is recreated, so Reports/slides/deck.pptx lands at Reports-markdown/slides/deck.md.", b: "Flat Downloads", bd: "Files come back one at a time, and you rebuild the folders by hand." },
+  { k: "Reliability", a: "Batch continues on error", ad: "Unreadable files are listed in _conversion-report.md and the run carries on.", b: "Stops on bad file", bd: "One corrupt or locked file ends the job." },
+  { k: "Setup", a: "Single click / .exe", ad: "Double-click to launch. Works offline after the first run.", b: "Accounts & API keys", bd: "Sign-ups, usage limits and keys to manage." },
+];
+$("compare").insertAdjacentHTML("beforeend", COMPARE.map(c => `<div class="cmp"><div class="k">${c.k}</div><div class="cell"><span class="chip g">${c.a}</span><span class="d">${c.ad}</span></div><div class="cell"><span class="chip r">${c.b}</span><span class="d m">${c.bd}</span></div></div>`).join(""));
+const FORMATS = [".pdf", ".docx", ".pptx", ".xlsx", ".xls", ".csv", ".html", ".json", ".xml", ".epub", ".zip", ".msg", ".txt", ".md", ".png / .jpg", ".py .js .ts", ".yaml .toml .ini"];
+$("formatsList").innerHTML = FORMATS.map(f => `<span>${f}</span>`).join("");
+$("host").textContent = location.host;
+
+/* hash routes for the doc views */
+const DOCS = ["license", "terms", "privacy", "contact"];
+function route() {
+  const h = (location.hash || "").slice(1);
+  const doc = DOCS.includes(h) ? h : "";
+  $("main").hidden = !!doc;
+  document.querySelectorAll(".docview").forEach(s => { s.hidden = s.id !== "doc-" + doc; });
+  if (doc) window.scrollTo(0, 0);
+  else if (h && $(h)) requestAnimationFrame(() => $(h).scrollIntoView());
+}
+window.addEventListener("hashchange", route); route();
+
+/* contact form */
+let topic = "Bug";
+function renderContact() {
+  $("topics").innerHTML = ["Bug", "Format request", "Question", "Other"].map(t => `<button type="button" class="topic${t === topic ? " on" : ""}" data-t="${t}">${t}</button>`).join("");
+  $("issueLink").href = "https://github.com/pransharma2/Any-File-To-MD/issues/new?title=" + encodeURIComponent(`[${topic}] ` + $("cTitle").value) + "&body=" + encodeURIComponent($("cBody").value);
+}
+$("topics").onclick = e => { const b = e.target.closest("[data-t]"); if (b) { topic = b.dataset.t; renderContact(); } };
+$("cTitle").oninput = $("cBody").oninput = renderContact; renderContact();
+
+/* converter state */
+const st = { view: "setup", outTouched: false, s: null, seen: [], cancelling: false, reportOpen: true };
+let poll = null, sug = null;
+const EXAMPLE = ["q1.pdf", "budget.xlsx", "slides/deck.pptx", "notes/a.pdf", "notes/a.docx"];
+function planOut(rel, all) {
+  const split = n => { const i = n.lastIndexOf("/"); return [i < 0 ? "" : n.slice(0, i + 1), n.slice(i + 1)]; };
+  const stem = n => (n.includes(".") ? n.slice(0, n.lastIndexOf(".")) : n);
+  const norm = rel.replace(/\\/g, "/"), [dir, name] = split(norm);
+  const clash = all.some(o => { const n = o.replace(/\\/g, "/"), [d, nm] = split(n); return n !== norm && d === dir && stem(nm).toLowerCase() === stem(name).toLowerCase(); });
+  return { out: dir + (clash ? name + ".md" : stem(name) + ".md"), clash };
+}
+const row = (src, out, tag, bad) => `<div class="trow"><span class="ell s">${esc(src)}</span><span class="a">→</span><span class="ell" style="color:${bad ? "var(--bad)" : "var(--ink)"}">${esc(out)}</span>${tag ? `<span class="tag ${tag}">${tag}</span>` : "<span></span>"}</div>`;
+
+function setErr(m) { $("err").textContent = m || ""; $("err").hidden = !m; }
+$("src").oninput = () => {
+  setErr(""); clearTimeout(sug);
+  const v = $("src").value.trim();
+  sug = setTimeout(async () => {
+    if (!v || st.outTouched) return render();
     try { $("out").value = (await api("/api/suggest", { source: v })).output; } catch {}
+    render();
   }, 250);
-});
+  render();
+};
+$("out").oninput = () => { st.outTouched = true; render(); };
 
-/* ---------- folder picker ---------- */
-let pickTarget = null, here = "", parent = null;
+/* folder picker (web: server-side browsing) */
+let picker = null, here = "", parent = null;
 async function load(path) {
   try {
     const d = await api("/api/browse?path=" + encodeURIComponent(path));
     here = d.path; parent = d.parent;
     $("crumb").textContent = here || "This computer";
-    $("choose").disabled = !here;
-    $("up").disabled = parent === null;
     $("places").innerHTML = d.places.map(p => `<button type="button" data-p="${esc(p.path)}">${esc(p.name)}</button>`).join("");
-    $("list").innerHTML = d.dirs.length
-      ? d.dirs.map(x => `<div class="item" data-p="${esc(x.path)}">📁 <span>${esc(x.name)}</span></div>`).join("")
-      : `<div class="item empty">No subfolders here</div>`;
-  } catch (e) { $("crumb").textContent = e.message; }
+    $("dirs").innerHTML = d.dirs.length ? d.dirs.map(x => `<div class="dir" data-p="${esc(x.path)}"><span>▸</span>${esc(x.name)}</div>`).join("") : `<div class="empty">No subfolders here</div>`;
+  } catch (e) { $("crumb").textContent = e.message; $("dirs").innerHTML = `<div class="empty">Couldn't open that folder</div>`; }
+  $("up").disabled = parent === null; $("choose").disabled = !here;
 }
 function openPicker(target) {
-  pickTarget = target;
-  $("dlgTitle").textContent = target === "src" ? "Choose the folder to convert" : "Choose where to save the Markdown";
-  const start = $(target).value.trim();
-  load(start).then(() => {}).catch(() => {});
-  $("dlg").showModal();
+  picker = target;
+  $("pickTitle").textContent = target === "src" ? "Choose the folder to convert" : "Choose where to save the Markdown";
+  load($(target).value.trim()); $("picker").hidden = false;
 }
 $("browseSrc").onclick = () => openPicker("src");
 $("browseOut").onclick = () => openPicker("out");
-$("list").onclick = e => { const it = e.target.closest(".item[data-p]"); if (it) load(it.dataset.p); };
-$("places").onclick = e => { const b = e.target.closest("button[data-p]"); if (b) load(b.dataset.p); };
+$("dirs").onclick = e => { const d = e.target.closest("[data-p]"); if (d) load(d.dataset.p); };
+$("places").onclick = e => { const b = e.target.closest("[data-p]"); if (b) load(b.dataset.p); };
 $("up").onclick = () => load(parent || "");
-$("dlgCancel").onclick = () => $("dlg").close();
+$("pickCancel").onclick = () => { $("picker").hidden = true; };
+$("picker").onclick = e => { if (e.target === $("picker")) $("picker").hidden = true; };
 $("choose").onclick = () => {
-  $(pickTarget).value = here;
-  if (pickTarget === "src") { outTouched = false; $("src").dispatchEvent(new Event("input")); } else outTouched = true;
-  $("dlg").close();
+  if (!here) return;
+  $(picker).value = here; $("picker").hidden = true;
+  if (picker === "src") { st.outTouched = false; $("src").dispatchEvent(new Event("input")); } else { st.outTouched = true; render(); }
 };
 
-/* ---------- run ---------- */
-let poll = null;
-const show = id => { for (const s of ["setup", "progress"]) $(s).style.display = s === id ? "block" : "none"; };
-show("setup");
-
+/* run */
+const running = () => st.view === "progress" && st.s && (st.s.state === "scanning" || st.s.state === "running");
 $("go").onclick = async () => {
-  $("err").textContent = "";
+  setErr("");
   const source = $("src").value.trim();
-  if (!source) { $("err").textContent = "Pick a folder first."; return; }
-  try {
-    await api("/api/start", { source, output: $("out").value.trim() });
-  } catch (e) { $("err").textContent = e.message; return; }
-  $("running").style.display = "block"; $("finished").style.display = "none";
-  $("fill").style.width = "0%"; show("progress");
-  poll = setInterval(tick, 400); tick();
+  if (!source) return setErr("Pick a folder first.");
+  try { await api("/api/start", { source, output: $("out").value.trim() }); } catch (e) { return setErr(e.message); }
+  st.view = "progress"; st.s = { state: "scanning", total: 0, done: 0, failures: [] }; st.seen = []; st.cancelling = false; st.reportOpen = true;
+  clearInterval(poll); poll = setInterval(tick, 400); tick(); render();
 };
-$("cancel").onclick = () => { $("cancel").disabled = true; api("/api/cancel", {}); };
+$("cancel").onclick = () => { st.cancelling = true; render(); api("/api/cancel", {}); };
 $("open").onclick = () => api("/api/open", {}).catch(e => alert(e.message));
-$("again").onclick = () => { show("setup"); $("cancel").disabled = false; };
-
+$("again").onclick = () => { st.view = "setup"; st.cancelling = false; render(); };
+$("reportBtn").onclick = () => { st.reportOpen = !st.reportOpen; render(); };
 async function tick() {
-  let s;
-  try { s = await api("/api/status"); } catch { return; }
-  const pct = s.total ? Math.round(100 * s.done / s.total) : 0;
-  $("fill").style.width = pct + "%";
-  $("runTitle").textContent = s.state === "scanning" ? "Looking through your folder…" : `Converting… ${pct}%`;
-  $("count").textContent = `${s.done} / ${s.total} files`;
-  $("cur").textContent = s.current;
+  let s; try { s = await api("/api/status"); } catch { return; }
+  st.s = s;
+  const add = f => { if (f && !st.seen.includes(f)) st.seen.push(f); };
+  add(s.current); (s.failures || []).forEach(f => add(f.file));
   if (["done", "cancelled", "error"].includes(s.state)) {
     clearInterval(poll);
-    if (s.state === "error") { show("setup"); $("err").textContent = s.error; return; }
-    $("running").style.display = "none"; $("finished").style.display = "block";
-    const bad = s.failed > 0;
-    $("icon").textContent = bad ? "!" : "✓"; $("icon").classList.toggle("warn", bad && !s.converted);
-    $("doneTitle").textContent = s.state === "cancelled" ? "Stopped" : s.total === 0 ? "Nothing to convert" : bad ? "Done, with a few skipped" : "All done";
-    $("doneOut").textContent = s.output;
-    $("sOk").textContent = s.converted; $("sBad").textContent = s.failed; $("sTime").textContent = s.seconds + "s";
-    $("fails").style.display = bad ? "block" : "none";
-    $("failSum").textContent = `${s.failed} file${s.failed === 1 ? "" : "s"} couldn't be converted (see _conversion-report.md)`;
-    $("failList").innerHTML = s.failures.map(f => `<li><b>${esc(f.file)}</b>: ${esc(f.reason)}</li>`).join("");
+    if (s.state === "error") { st.view = "setup"; setErr(s.error); }
   }
+  render();
 }
+
+function render() {
+  const s = st.s || {}, inProg = st.view === "progress", run = running();
+  const finished = inProg && ["done", "cancelled"].includes(s.state);
+  const failures = s.failures || [], failed = new Set(failures.map(f => f.file));
+  const pct = s.total ? Math.round(100 * s.done / s.total) : 0;
+  let title = "Mirror preview", phase = "Ready", dot = "#b9b4af";
+  if (run) { title = s.state === "scanning" ? "Looking through your folder…" : `Converting… ${pct}%`; phase = "Converting"; dot = "#3f8a4f"; }
+  else if (finished) {
+    title = s.state === "cancelled" ? "Stopped" : s.total === 0 ? "Nothing to convert" : s.failed > 0 ? "Done, with a few skipped" : "All done";
+    phase = s.state === "cancelled" ? "Stopped" : s.failed > 0 ? "Completed with warnings" : "Completed";
+    dot = s.failed > 0 || s.state === "cancelled" ? "#846e2d" : "#3f8a4f";
+  }
+  $("ptitle").textContent = title; $("phase").textContent = phase;
+  $("dot").style.background = dot; $("dot").style.animation = run ? "blink 1.2s ease-in-out infinite" : "none";
+  $("count").textContent = inProg ? `${s.done || 0} / ${s.total || 0} files` : "";
+  $("outHint").textContent = st.outTouched ? "Custom location" : "Defaults to <folder>-markdown";
+  $("barWrap").hidden = !run; $("fill").style.width = pct + "%"; $("cur").textContent = s.current ? "\u200E" + s.current : "\u00A0";
+  $("statsWrap").hidden = !finished;
+  $("sOk").textContent = s.converted || 0; $("sBad").textContent = s.failed || 0; $("sBad").style.color = s.failed ? "var(--bad)" : "var(--ink)";
+  $("sTime").textContent = (s.seconds || 0) + "s"; $("outPath").textContent = s.output || "";
+  $("tSrc").textContent = (baseName($("src").value) || "source") + "/";
+  $("tOut").textContent = (baseName(inProg ? (s.output || $("out").value) : $("out").value) || "source-markdown") + "/";
+  if (!inProg) {
+    $("tlist").innerHTML = EXAMPLE.map(f => { const p = planOut(f, EXAMPLE); return row(f, p.out, p.clash ? "renamed" : "", false); }).join("");
+    $("tnote").textContent = "Example. Folders are copied exactly; same-name files keep their extension.";
+  } else {
+    $("tlist").innerHTML = st.seen.map(f => {
+      const bad = failed.has(f), active = run && f === s.current, p = planOut(f, st.seen);
+      return row(f.replace(/\\/g, "/"), bad ? "not converted" : p.out, bad ? "skipped" : active ? "working" : p.clash ? "renamed" : "done", bad);
+    }).join("");
+    $("tnote").textContent = st.seen.length ? (run ? "Showing files as they are processed." : `Showing ${st.seen.length} of ${s.done} processed files.`) : "Looking through your folder…";
+  }
+  $("report").hidden = !(finished && failures.length);
+  $("caret").textContent = st.reportOpen ? "▾" : "▸"; $("failList").hidden = !st.reportOpen;
+  $("failSum").textContent = `${s.failed} file${s.failed === 1 ? "" : "s"} couldn't be converted`;
+  $("failList").innerHTML = failures.map(f => `<div class="fail"><span class="f">${esc(f.file)}</span><span class="r">${esc(f.reason)}</span></div>`).join("");
+  $("cancel").hidden = !run; $("cancel").disabled = st.cancelling; $("cancel").textContent = st.cancelling ? "Stopping…" : "Cancel";
+  $("acts").hidden = !finished;
+  for (const id of ["src", "out", "browseSrc", "browseOut", "go"]) $(id).disabled = run;
+  $("go").textContent = run ? "Converting…" : "Convert to Markdown";
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") $("picker").hidden = true; });
+render();
 </script>
 </body>
 </html>

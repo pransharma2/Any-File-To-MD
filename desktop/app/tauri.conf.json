@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Any File To MD",
+  "version": "1.0.0",
+  "identifier": "io.github.pransharma2.anyfiletomd",
+  "build": {
+    "frontendDist": "ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Any File To MD",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 960,
+        "minHeight": 560,
+        "center": true,
+        "decorations": false,
+        "dragDropEnabled": true,
+        "backgroundColor": "#f9f5ef"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Any File To MD contributors",
+    "copyright": "© 2026 Any File To MD contributors · MIT License",
+    "category": "Productivity",
+    "shortDescription": "Point at a folder. Get clean Markdown.",
+    "longDescription": "Converts PDF, Word, PowerPoint, Excel, HTML, CSV, EPUB, e-mail, code and more into a mirrored folder of Markdown. Runs entirely on your computer.",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
+    "externalBin": ["binaries/anytomd"],
+    "license": "MIT",
+    "licenseFile": "../../LICENSE",
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "installer-hooks.nsh",
+        "startMenuFolder": "Any File To MD"
+      }
+    }
+  }
+}
