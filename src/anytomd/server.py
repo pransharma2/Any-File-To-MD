@@ -124,6 +124,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, html.encode(), "text/html; charset=utf-8")
         if url.path == "/favicon.svg":
             return self._send(200, (STATIC / "favicon.svg").read_bytes(), "image/svg+xml")
+        if url.path.startswith("/fonts/"):
+            name = url.path.rsplit("/", 1)[-1]
+            font = STATIC / "fonts" / name
+            if name.endswith(".woff2") and "/" not in name and "\\" not in name and font.is_file():
+                return self._send(200, font.read_bytes(), "font/woff2")
+            return self._send(404, b"Not found", "text/plain")
         if not self._authed():
             return self._json({"error": "Unauthorized"}, 403)
         if url.path == "/api/browse":

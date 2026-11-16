@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Any File To MD</title>
+<style>
+@font-face{font-family:'Instrument Serif';font-weight:400;font-style:normal;font-display:block;src:url(fonts/instrument-serif-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:400;font-style:normal;font-display:block;src:url(fonts/instrument-sans-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:500;font-style:normal;font-display:block;src:url(fonts/instrument-sans-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Instrument Sans';font-weight:600;font-style:normal;font-display:block;src:url(fonts/instrument-sans-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:400;font-style:normal;font-display:block;src:url(fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'JetBrains Mono';font-weight:500;font-style:normal;font-display:block;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
+
+:root{
+  --bg:#f9f5ef;--stage:#eeeae4;--card:#FFFFFF;--line:#e3dfda;--divider:#eeeae4;
+  --ink:#271e19;--ink2:#514944;--ink3:#665f59;--muted:#7b746f;--faint:#908984;--faint2:#b9b4af;
+  --btn:#271e19;--btn-hover:#3c342e;--accent:#6d51ac;--accent-bg:#6d51ac1a;
+  --ok:#3f8a4f;--ok-bg:#3f8a4f1a;--bad:#b0152c;--bad-bg:#b0152c1a;--warn:#846e2d;--warn-bg:#846e2d1a;
+  --serif:'Instrument Serif',Georgia,serif;--sans:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;user-select:none;cursor:default}
+input,textarea{user-select:text}
+::selection{background:#6d51ac33}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+button{font:inherit;color:inherit}
+button:disabled{cursor:not-allowed!important}
+.serif{font-family:var(--serif);font-weight:400;color:var(--ink)}
+.mono{font-family:var(--mono)}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rtl{direction:rtl;text-align:left}
+[hidden]{display:none!important}
+
+.app{height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative}
+
+/* title bar */
+.titlebar{height:40px;flex:none;display:flex;align-items:center;gap:10px;padding-left:14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.titlebar .name{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.pill{display:flex;align-items:center;gap:6px;height:20px;padding:0 7px;border-radius:3px;background:var(--ok-bg);font-size:11px;font-weight:500;color:var(--ok)}
+.pill i{width:5px;height:5px;background:var(--ok)}
+.winbtn{width:46px;height:40px;display:grid;place-items:center;color:var(--ink);border:0;background:transparent;padding:0}
+.winbtn:hover{background:var(--stage)}
+.winbtn.close:hover{background:#c42b1c;color:#FFFFFF}
+
+/* layout */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:392px minmax(0,1fr)}
+.left{position:relative;overflow:hidden;border-right:1px solid var(--line);padding:28px 28px 0;display:flex;flex-direction:column;gap:22px}
+.left > *:not(.land){position:relative;z-index:1}
+.land{position:absolute;left:0;right:0;bottom:0;width:100%;height:150px;pointer-events:none;z-index:0}
+.eyebrow{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--accent)}
+.eyebrow span{font-size:16px;line-height:1}
+h1{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:1.02;letter-spacing:-.03em}
+.field{display:flex;flex-direction:column;gap:8px}
+.label{display:flex;gap:10px;align-items:baseline}
+.label .n{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.label .t{font-size:14px;font-weight:500}
+.label .h{font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+
+.srccard{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--card);cursor:pointer;text-align:left;width:100%}
+.srccard:hover:not(:disabled){border-color:var(--ink)}
+.tile{width:44px;height:44px;flex:none;display:grid;place-items:center;background:var(--accent-bg);color:var(--accent)}
+.srccard .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.srccard .root{font-family:var(--serif);font-size:21px;line-height:1.1}
+.srccard .path{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.srccard .chg{font-size:13px;color:var(--accent);white-space:nowrap}
+.drop{height:118px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:1.5px dashed #cfc8c1;border-radius:6px;background:var(--card);cursor:pointer;color:var(--accent)}
+.drop:hover,.drop.over{border-color:var(--accent);background:#fdfbf8}
+.drop .big{font-family:var(--serif);font-size:21px;color:var(--ink)}
+.drop .small{font-size:13px;color:var(--ink3)}
+.app.dragging .srccard{border-color:var(--accent);border-style:dashed}
+
+.row{display:flex;gap:8px}
+.input{flex:1;min-width:0;height:42px;font-family:var(--mono);font-size:12px;padding:0 12px;border:1px solid var(--line);border-radius:4px;background:var(--card);color:var(--ink);outline:none}
+.input:focus{border-color:var(--ink)}
+.input:disabled{opacity:.6}
+.btn2{height:42px;font-size:14px;padding:0 14px;border:1px solid var(--line);border-radius:2px;background:var(--card);cursor:pointer;white-space:nowrap}
+.btn2:hover:not(:disabled){background:var(--stage)}
+.btn1{border:0;border-radius:2px;background:var(--btn);color:var(--bg);cursor:pointer;font-weight:500}
+.btn1:hover:not(:disabled){background:var(--btn-hover)}
+.go{height:52px;font-size:17px;width:100%}
+.go:disabled{opacity:.5}
+.err{font-size:13px;color:var(--bad);border-left:2px solid var(--bad);padding:2px 0 2px 10px;background:var(--bg)}
+
+.opts{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:4px;background:var(--card);cursor:pointer;width:100%;text-align:left}
+.opts:hover:not(:disabled){border-color:var(--ink)}
+.opts .sum{flex:1;min-width:0;font-size:12.5px;color:var(--ink3)}
+.opts .chg{font-size:13px;color:var(--accent)}
+
+/* right */
+.right{background:radial-gradient(#e3dfda 1px,transparent 1px) 0 0/7px 7px,var(--stage);padding:20px;min-width:0;min-height:0;display:flex}
+.card{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 3px rgba(39,30,25,.06),0 12px 32px -16px rgba(39,30,25,.12);display:flex;flex-direction:column;overflow:hidden}
+.chead{padding:16px 20px;border-bottom:1px solid var(--divider);display:flex;align-items:center;gap:12px}
+.ptitle{font-family:var(--serif);font-size:24px;letter-spacing:-.02em}
+.count{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-left:auto}
+.phase{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.phase i{width:7px;height:7px;background:var(--faint2)}
+.cbody{flex:1;min-height:0;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.bar{height:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.cur{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:6px}
+.stats > div{padding:12px 16px}
+.stats > div + div{border-left:1px solid var(--divider)}
+.stats b{display:block;font-family:var(--serif);font-weight:400;font-size:32px;line-height:1}
+.stats small{display:block;font-size:12px;color:var(--ink3);margin-top:4px}
+.extra{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-top:-6px}
+.tree{flex:1;min-height:0;border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;overflow:hidden}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr) 72px;gap:8px;align-items:center;padding:7px 14px;font-family:var(--mono);font-size:12px;border-bottom:1px solid var(--divider)}
+.trow.head{padding:10px 14px;color:var(--ink3)}
+.trow .a{color:var(--faint2)}
+.trow .s{color:var(--ink3)}
+.tag{justify-self:end;font-family:var(--sans);font-size:11.5px;padding:1px 7px;border-radius:3px}
+.tag.done{background:var(--ok-bg);color:var(--ok)}
+.tag.renamed{background:var(--accent-bg);color:var(--accent)}
+.tag.skipped{background:var(--bad-bg);color:var(--bad)}
+.tag.working,.tag.unchanged{background:var(--stage);color:var(--ink3)}
+.tag.copied{background:var(--warn-bg);color:var(--warn)}
+.tlist{flex:1;min-height:0;overflow:auto}
+.tnote{padding:8px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--divider);display:flex;gap:10px}
+.tnote a{color:var(--accent);cursor:pointer;margin-left:auto;white-space:nowrap}
+.report{border:1px solid var(--line);border-radius:6px;overflow:hidden;flex:none}
+.report > button{width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;border:0;background:transparent;font-size:13px;cursor:pointer;text-align:left}
+.report .caret{font-family:var(--mono);font-size:12px;color:var(--faint);width:10px}
+.report .fname{font-family:var(--mono);font-size:12px;font-weight:500}
+.report .badge{margin-left:auto;font-size:12px;padding:1px 7px;border-radius:3px;background:var(--bad-bg);color:var(--bad)}
+.report .list{border-top:1px solid var(--divider);max-height:120px;overflow:auto;padding:2px 0}
+.fail{margin:7px 14px 7px 34px;padding:1px 0 1px 12px;border-left:2px solid var(--bad);display:flex;flex-direction:column;gap:2px}
+.fail .f{font-family:var(--mono);font-size:12px;word-break:break-all;user-select:text}
+.fail .r{font-size:12.5px;color:var(--ink3);user-select:text}
+.cfoot{flex:none;border-top:1px solid var(--divider);padding:12px 20px;display:flex;gap:8px;align-items:center;min-height:66px}
+.cfoot .note{font-size:13px;color:var(--muted)}
+.cfoot .btn2{height:40px;font-size:14px;padding:0 16px}
+.cfoot .open{flex:2;height:42px;font-size:15px}
+.cfoot .again{flex:1;height:42px;font-size:15px}
+
+/* status bar */
+.statusbar{height:28px;flex:none;border-top:1px solid var(--line);padding:0 14px;display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg)}
+.statusbar .ok{display:flex;align-items:center;gap:6px}
+.statusbar .ok i{width:5px;height:5px;background:var(--ok)}
+.statusbar a{color:var(--muted);cursor:pointer}
+.statusbar a:hover{color:var(--accent)}
+
+/* options dialog */
+.scrim{position:absolute;inset:0;z-index:50;background:rgba(39,30,25,.4);display:grid;place-items:center;padding:24px}
+.dialog{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 24px 64px -16px rgba(39,30,25,.35);overflow:hidden}
+.dhead{padding:20px 22px 14px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--divider)}
+.dhead h3{margin:0;font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:-.02em}
+.dhead p{margin:0;font-size:13px;color:var(--ink3)}
+.dbody{padding:6px 22px 14px;display:flex;flex-direction:column}
+.check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--divider);cursor:pointer}
+.check input{appearance:none;width:16px;height:16px;flex:none;margin:2px 0 0;border:1px solid #cfc8c1;border-radius:2px;background:var(--card);display:grid;place-items:center;cursor:pointer}
+.check input:checked{background:var(--btn);border-color:var(--btn)}
+.check input:checked::after{content:"";width:8px;height:4px;border-left:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.check b{display:block;font-size:14px;font-weight:500}
+.check span{display:block;font-size:12.5px;color:var(--ink3);margin-top:2px;line-height:1.45}
+.check code,.dbody code{font-family:var(--mono);font-size:11.5px;color:var(--ink)}
+.dfield{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--divider)}
+.dfield label{font-size:14px;font-weight:500}
+.dfield .hint{font-size:12.5px;color:var(--ink3)}
+.dfield .input{flex:none;height:40px}
+.dfoot{display:flex;gap:8px;align-items:center;padding:14px 22px}
+.dfoot .btn2,.dfoot .btn1{height:40px;font-size:15px;padding:0 16px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="titlebar" data-tauri-drag-region>
+    <svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="#271e19" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" style="flex:none;pointer-events:none">
+      <path d="M2.75 4.75h7.5l3.5 3.5v19h-11z"/><path d="M10.25 4.75v3.5h3.5"/>
+      <path d="M5.25 13.25h5.5M5.25 17h4M5.25 20.75h5.5" stroke-width="1.25"/>
+      <path d="M16 2.5v27" stroke-width="1" stroke-dasharray="1.5 2"/>
+      <path d="M29.25 4.75h-7.5l-3.5 3.5v19h11z"/><path d="M21.75 4.75v3.5h-3.5"/>
+      <path d="M21.6 13.5l-.9 8M24.6 13.5l-.9 8M20.4 16h5.2M20 19h5.2" stroke="#6d51ac" stroke-width="1.25"/>
+    </svg>
+    <span class="name" data-tauri-drag-region>Any File To MD</span>
+    <span class="pill" data-tauri-drag-region><i></i>100% Local · Offline</span>
+    <span style="flex:1" data-tauri-drag-region></span>
+    <button class="winbtn" data-win="minimize" title="Minimize"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1"><path d="M0 5.5h10"/></svg></button>
+    <button class="winbtn" data-win="maximize" title="Maximize"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1"><rect x=".5" y=".5" width="9" height="9"/></svg></button>
+    <button class="winbtn close" data-win="close" title="Close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1"><path d="M.5 .5l9 9M9.5 .5l-9 9"/></svg></button>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      <svg class="land" aria-hidden="true" viewBox="0 0 1200 340" preserveAspectRatio="xMidYMax slice" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M217 70h6M220 67v6M327 40h6M330 37v6M877 50h6M880 47v6M1007 90h6M1010 87v6M147 120h6M150 117v6M1077 40h6M1080 37v6" stroke="#b9b4af" stroke-width="1"/>
+        <circle cx="600" cy="196" r="118" stroke="#846e2d" stroke-opacity="0.28" stroke-width="1"/><circle cx="600" cy="196" r="142" stroke="#846e2d" stroke-opacity="0.21" stroke-width="1" stroke-dasharray="2 5"/><circle cx="600" cy="196" r="168" stroke="#846e2d" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="2 5"/>
+        <circle cx="600" cy="196" r="94" fill="#fbe3bf" fill-opacity=".7" stroke="#846e2d" stroke-opacity=".55" stroke-width="1.1"/>
+        <path d="M524 150H676M520 158H680M516.9 166H683.1M514.6 174H685.4M513 182H687M512.2 190H687.8" stroke="#846e2d" stroke-opacity=".22" stroke-width="1"/>
+        <path d="M468 92q5 -5 10 0q5 -5 10 0M488 82q4 -4 8 0q4 -4 8 0M506 96q3.5 -3.5 7 0q3.5 -3.5 7 0M790 70q4.5 -4.5 9 0q4.5 -4.5 9 0M812 80q3.5 -3.5 7 0q3.5 -3.5 7 0" stroke="#665f59" stroke-width="1.1"/>
+        <path d="M0 222 L60 206 L118 214 L180 184 L226 198 L290 160 L338 178 L392 150 L444 172 L500 162 L540 176 L660 176 L700 158 L752 170 L806 144 L862 172 L916 156 L978 186 L1040 166 L1096 190 L1150 178 L1200 196 V340 H0Z" fill="#f4dfcb" stroke="#b9b4af" stroke-width="1"/>
+        <path d="M0 262 L84 240 L150 250 L236 210 L296 228 L362 196 L426 222 L488 182 L530 160 L566 132 L600 100 L622 116 L640 112 L668 142 L712 172 L770 204 L826 186 L884 216 L948 196 L1014 230 L1080 210 L1140 226 L1200 218 V340 H0Z" fill="#f8ebdf" stroke="#665f59" stroke-width="1.25"/>
+        <path d="M631.3 121.5l-7 14M640.5 127l-7.9 15.9M649.8 132.5l-8.8 17.6M659 138l-9.6 19.1M668.3 143.5l-10.2 20.3M677.5 149l-10.6 21.2M686.8 154.5l-10.9 21.8M696 160l-11 22M705.3 165.5l-10.9 21.8M714.5 171l-10.6 21.2M723.8 176.5l-10.2 20.3M733 182l-9.6 19.1M742.3 187.5l-8.8 17.6M751.5 193l-7.9 15.9M760.8 198.5l-7 14M685 152.3l-4.6 9.3M702 162.7l-5.6 11.3M719 173l-6 12M736 183.3l-5.6 11.3M753 193.7l-4.6 9.3M372.7 200.3l-3.7 9.3M383.3 204.7l-4.5 11.3M394 209l-4.8 12M404.7 213.3l-4.5 11.3M415.3 217.7l-3.7 9.3M248 213.6l-3.3 8.1M260 217.2l-3.9 9.8M272 220.8l-3.9 9.8M284 224.4l-3.3 8.1M959 201.7l-3.7 9.3M970 207.3l-4.5 11.3M981 213l-4.8 12M992 218.7l-4.5 11.3M1003 224.3l-3.7 9.3M1036 249.6l-2.9 7.3M1048 253.2l-3.5 8.8M1060 256.8l-3.5 8.8M1072 260.4l-2.9 7.3M199 261.5l-2.8 6.9M212 265l-3.2 8M225 268.5l-2.8 6.9" stroke="#908984" stroke-width=".9"/>
+        <path d="M566 132 L578 128 L584 138 L594 124 L602 136 L612 122 L622 116 M640 112 L646 124 L656 128 L668 142" stroke="#271e19" stroke-width="1.1"/>
+        <path d="M600 100 L598 126 L604 150 L596 178 M640 112 L636 136 M488 182 L500 200 L496 222 M806 144 L812 160 M392 150 L398 168" stroke="#7b746f" stroke-width=".9"/>
+        <path d="M0 292 L58 276 L118 286 L186 258 L238 272 L300 254 L366 280 L440 296 L600 306 L760 296 L834 278 L896 252 L956 268 L1024 246 L1084 264 L1146 252 L1200 262 V340 H0Z" fill="#f9f5ef" stroke="#271e19" stroke-width="1.4"/>
+        <path d="M906 254.7l-3.1 7.8M916 257.3l-3.8 9.4M926 260l-4 10M936 262.7l-3.8 9.4M946 265.3l-3.1 7.8M311 258.3l-3.1 7.8M322 262.7l-3.8 9.4M333 267l-4 10M344 271.3l-3.8 9.4M355 275.7l-3.1 7.8" stroke="#7b746f" stroke-width=".9"/>
+        <path d="M480 312h96M624 312h96M512 318h70.4M617.6 318h70.4M540 324h48M612 324h48M564 330h28.8M607.2 330h28.8M582 336h14.4M603.6 336h14.4" stroke="#846e2d" stroke-opacity=".6" stroke-width="1.1"/>
+        <path d="M0 318 C120 310 220 322 340 316 S520 308 560 316 M640 316 C700 308 820 322 940 314 S1120 308 1200 316 M0 330 C150 324 260 336 400 330 S520 326 540 330 M660 330 C720 326 860 336 1000 330 S1140 326 1200 330" stroke="#b9b4af" stroke-width="1" stroke-dasharray="3 4"/>
+      </svg>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span class="eyebrow"><span>+</span>Convert a folder</span>
+        <h1>Point at a folder.<br>Get clean Markdown.</h1>
+      </div>
+
+      <div class="field">
+        <div class="label"><span class="n">01</span><span class="t">Source folder</span><span class="h">Subfolders included</span></div>
+        <button type="button" class="srccard" id="srcCard" hidden>
+          <span class="tile"><svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 8.5v17.5h25V11.5h-12l-3-3z"/><path d="M3.5 13h25"/><path d="M8.5 18h8M8.5 21.5h12" stroke-width="1.2"/><path d="M23.5 18l.6 4.5M26 18l-.6 4.5" stroke-width="1.1"/></svg></span>
+          <span class="txt"><span class="root ell" id="srcRoot"></span><span class="path ell rtl" id="srcPath"></span></span>
+          <span class="chg">Change</span>
+        </button>
+        <button type="button" class="drop" id="drop">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M5 15v19h30V18.5H20.5l-3.5-3.5z"/><path d="M5 21h30" stroke-dasharray="2 2"/><path d="M20 3v11M16 10l4 4 4-4"/><path d="M10 27h9M10 30.5h14" stroke-width="1.2"/></svg>
+          <span class="big">Drop a folder here</span>
+          <span class="small">or click to browse</span>
+        </button>
+      </div>
+
+      <div class="field">
+        <div class="label"><span class="n">02</span><span class="t">Output folder</span><span class="h" id="outHint">Defaults to &lt;folder&gt;-markdown</span></div>
+        <div class="row">
+          <input class="input" id="out" type="text" placeholder="Filled in automatically" spellcheck="false" autocomplete="off">
+          <button type="button" class="btn2" id="browseOut">Change</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label"><span class="n">03</span><span class="t">Options</span></div>
+        <button type="button" class="opts" id="optsBtn"><span class="sum ell" id="optsSum"></span><span class="chg">Edit</span></button>
+      </div>
+
+      <div class="field">
+        <button type="button" class="btn1 go" id="go">Convert to Markdown</button>
+        <div class="err" id="err" role="alert" hidden></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <div class="chead">
+          <span class="ptitle ell" id="ptitle">Mirror preview</span>
+          <span class="count" id="count"></span>
+          <span class="phase"><i id="dot"></i><span id="phase">Ready</span></span>
+        </div>
+        <div class="cbody">
+          <div id="barWrap" style="display:flex;flex-direction:column;gap:8px" hidden>
+            <div class="bar"><i id="fill"></i></div>
+            <div class="cur ell rtl" id="cur">&nbsp;</div>
+          </div>
+          <div id="statsWrap" hidden>
+            <div class="stats">
+              <div><b id="sOk">0</b><small>converted</small></div>
+              <div><b id="sBad">0</b><small>skipped</small></div>
+              <div><b id="sTime">0s</b><small>time</small></div>
+            </div>
+          </div>
+          <div class="extra" id="extra" hidden></div>
+          <div class="tree">
+            <div class="trow head"><span class="ell" id="tSrc">source/</span><span class="a">→</span><span class="ell" id="tOut">source-markdown/</span><span></span></div>
+            <div class="tlist" id="tlist"></div>
+            <div class="tnote"><span id="tnote">Example. Folders are copied exactly; same-name files keep their extension.</span><a id="openCombined" hidden>Open _combined.md</a></div>
+          </div>
+          <div class="report" id="report" hidden>
+            <button type="button" id="reportBtn"><span class="caret" id="caret">▾</span><span class="fname">_conversion-report.md</span><span class="badge" id="failSum"></span></button>
+            <div class="list" id="failList"></div>
+          </div>
+        </div>
+        <div class="cfoot">
+          <span class="note" id="idleNote">Originals are read only. Nothing is moved, edited or uploaded.</span>
+          <button type="button" class="btn2" id="cancel" hidden>Cancel</button>
+          <button type="button" class="btn1 open" id="open" hidden>Open the Markdown folder</button>
+          <button type="button" class="btn2 again" id="again" hidden>Convert another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="ok"><i></i>Offline · files never leave this computer</span>
+    <span style="flex:1"></span>
+    <a id="shellLink" title="Add or remove “Convert to Markdown” in the Explorer right-click menu"></a>
+    <span>Rust engine</span><span id="ver">v1.0.0 · MIT License</span>
+  </div>
+
+  <div class="scrim" id="optsDlg" hidden>
+    <div class="dialog" role="dialog" aria-labelledby="optsTitle">
+      <div class="dhead">
+        <h3 id="optsTitle">Conversion options</h3>
+        <p>Saved on this computer and used for every run, including the right-click menu.</p>
+      </div>
+      <div class="dbody">
+        <label class="check"><input type="checkbox" id="oSkip"><div><b>Skip unchanged files</b><span>Re-runs only convert new or edited files, so re-syncing a big folder takes seconds.</span></div></label>
+        <label class="check"><input type="checkbox" id="oCombine"><div><b>Also create one combined file</b><span>Writes <code>_combined.md</code> with every document and a table of contents. Handy for pasting into an AI chat.</span></div></label>
+        <label class="check"><input type="checkbox" id="oCopy"><div><b>Copy files that can't be converted</b><span>Images, media and unknown files are copied as-is instead of skipped, so the output is a complete mirror.</span></div></label>
+        <div class="dfield"><label for="oInclude">Only these file types</label><input class="input" id="oInclude" placeholder="All types (e.g. pdf, docx, pptx)" spellcheck="false"><span class="hint">Comma-separated extensions. Leave empty to convert everything.</span></div>
+        <div class="dfield" style="border-bottom:0"><label for="oExclude">Skip these paths</label><input class="input" id="oExclude" placeholder="e.g. drafts, *.log, archive/**" spellcheck="false"><span class="hint">Comma-separated folder names or glob patterns.</span></div>
+      </div>
+      <div class="dfoot">
+        <button type="button" class="btn2" id="oReset">Reset</button>
+        <span style="flex:1"></span>
+        <button type="button" class="btn2" id="oCancel">Cancel</button>
+        <button type="button" class="btn1" id="oSave">Save options</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const T = window.__TAURI__;
+const invoke = (cmd, args) => T.core.invoke(cmd, args);
+const $ = id => document.getElementById(id);
+const baseName = p => (p || "").replace(/[\\/]+$/, "").split(/[\\/]/).pop() || "";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* ---------- state ---------- */
+const DEFAULT_OPTS = { skipUnchanged: true, combine: false, copyUnsupported: false, include: [], exclude: [] };
+let opts = { ...DEFAULT_OPTS };
+try { opts = { ...DEFAULT_OPTS, ...JSON.parse(localStorage.getItem("anytomd.options") || "{}") }; } catch {}
+const st = { view: "setup", src: "", out: "", outTouched: false, s: null, since: 0, rows: 0, cancelling: false, reportOpen: true };
+let poll = null, sug = null;
+
+/* ---------- example tree (idle) ---------- */
+const EXAMPLE = ["q1.pdf", "budget.xlsx", "slides/deck.pptx", "notes/a.pdf", "notes/a.docx"];
+function planOut(rel, all) {
+  const split = n => { const i = n.lastIndexOf("/"); return [i < 0 ? "" : n.slice(0, i + 1), n.slice(i + 1)]; };
+  const stem = n => (n.includes(".") ? n.slice(0, n.lastIndexOf(".")) : n);
+  const [dir, name] = split(rel);
+  const clash = all.some(o => { const [d, nm] = split(o); return o !== rel && d === dir && stem(nm).toLowerCase() === stem(name).toLowerCase(); });
+  return { out: dir + (clash ? name + ".md" : stem(name) + ".md"), clash };
+}
+function rowHtml(src, out, tag, outBad) {
+  return `<div class="trow"><span class="ell s">${esc(src)}</span><span class="a">→</span><span class="ell" style="color:${outBad ? "var(--bad)" : "var(--ink)"}">${esc(out)}</span>${tag ? `<span class="tag ${tag}">${tag}</span>` : "<span></span>"}</div>`;
+}
+function renderExample() {
+  $("tlist").innerHTML = EXAMPLE.map(f => { const p = planOut(f, EXAMPLE); return rowHtml(f, p.out, p.clash ? "renamed" : "", false); }).join("");
+  $("tnote").textContent = "Example. Folders are copied exactly; same-name files keep their extension.";
+}
+
+/* ---------- options ---------- */
+function optsSummary() {
+  const parts = [opts.skipUnchanged ? "Skip unchanged" : "Re-convert all"];
+  if (opts.combine) parts.push("Combined file");
+  if (opts.copyUnsupported) parts.push("Copy others");
+  if (opts.include.length) parts.push("Only " + opts.include.join(", "));
+  if (opts.exclude.length) parts.push("Skip " + opts.exclude.join(", "));
+  $("optsSum").textContent = parts.join(" · ");
+}
+const list = v => v.split(",").map(s => s.trim()).filter(Boolean);
+function openOpts() {
+  $("oSkip").checked = opts.skipUnchanged; $("oCombine").checked = opts.combine; $("oCopy").checked = opts.copyUnsupported;
+  $("oInclude").value = opts.include.join(", "); $("oExclude").value = opts.exclude.join(", ");
+  $("optsDlg").hidden = false;
+}
+$("optsBtn").onclick = openOpts;
+$("oCancel").onclick = () => { $("optsDlg").hidden = true; };
+$("optsDlg").onclick = e => { if (e.target === $("optsDlg")) $("optsDlg").hidden = true; };
+$("oReset").onclick = () => { opts = { ...DEFAULT_OPTS }; openOpts(); };
+$("oSave").onclick = () => {
+  opts = { skipUnchanged: $("oSkip").checked, combine: $("oCombine").checked, copyUnsupported: $("oCopy").checked, include: list($("oInclude").value), exclude: list($("oExclude").value) };
+  try { localStorage.setItem("anytomd.options", JSON.stringify(opts)); } catch {}
+  optsSummary(); $("optsDlg").hidden = true;
+};
+
+/* ---------- source / output ---------- */
+function setErr(m) { $("err").textContent = m || ""; $("err").hidden = !m; }
+function setSrc(path) {
+  st.src = path || ""; setErr("");
+  const has = !!st.src.trim();
+  $("srcCard").hidden = !has; $("drop").hidden = has;
+  $("srcRoot").textContent = baseName(st.src) || st.src;
+  $("srcPath").textContent = "‎" + st.src;
+  clearTimeout(sug);
+  sug = setTimeout(async () => {
+    if (!st.src.trim() || st.outTouched) return renderHeads();
+    st.out = await invoke("suggest_output", { source: st.src });
+    $("out").value = st.out; renderHeads();
+  }, 250);
+  renderHeads();
+}
+function renderHeads() {
+  $("outHint").textContent = st.outTouched ? "Custom location" : "Defaults to <folder>-markdown";
+  const inProg = st.view === "progress";
+  $("tSrc").textContent = (baseName(st.src) || "source") + "/";
+  $("tOut").textContent = (baseName(inProg && st.s ? (st.s.output || st.out) : st.out) || "source-markdown") + "/";
+}
+async function browse(target) {
+  const start = target === "src" ? st.src : (st.out || st.src);
+  const title = target === "src" ? "Choose the folder to convert" : "Choose where to save the Markdown";
+  const p = await invoke("pick_folder", { title, start: start || null });
+  if (!p) return;
+  if (target === "src") { st.outTouched = false; setSrc(p); }
+  else { st.out = p; st.outTouched = true; $("out").value = p; renderHeads(); }
+}
+$("srcCard").onclick = () => browse("src");
+$("drop").onclick = () => browse("src");
+$("browseOut").onclick = () => browse("out");
+$("out").oninput = e => { st.out = e.target.value; st.outTouched = true; renderHeads(); };
+
+/* drag & drop anywhere on the window */
+T.webview.getCurrentWebview().onDragDropEvent(async e => {
+  const p = e.payload;
+  if (p.type === "enter" || p.type === "over") { $("app").classList.add("dragging"); $("drop").classList.add("over"); }
+  else { $("app").classList.remove("dragging"); $("drop").classList.remove("over"); }
+  if (p.type === "drop" && p.paths && p.paths.length && !locked()) {
+    const path = p.paths[0];
+    const kind = await invoke("path_kind", { path });
+    if (kind !== "dir") return setErr(kind === "file" ? "That's a file. Drop a folder, or right-click the file in Explorer and choose Convert to Markdown." : "That folder doesn't exist.");
+    st.outTouched = false; setSrc(path);
+  }
+});
+
+/* ---------- run ---------- */
+const locked = () => st.view === "progress" && st.s && (st.s.state === "scanning" || st.s.state === "running");
+async function go() {
+  setErr("");
+  const source = st.src.trim();
+  if (!source) return setErr("Pick a folder first.");
+  let out;
+  try { out = await invoke("start_conversion", { source, output: $("out").value.trim(), options: opts }); }
+  catch (e) { return setErr(String(e)); }
+  st.out = out; $("out").value = out;
+  st.view = "progress"; st.s = { state: "scanning", total: 0, done: 0, failures: [] };
+  st.since = 0; st.rows = 0; st.cancelling = false; st.reportOpen = true;
+  $("tlist").innerHTML = "";
+  clearInterval(poll); poll = setInterval(tick, 400); tick();
+  render();
+}
+$("go").onclick = go;
+$("cancel").onclick = () => { st.cancelling = true; render(); invoke("cancel"); };
+$("open").onclick = () => invoke("open_output", { combined: false }).catch(e => setErr(String(e)));
+$("openCombined").onclick = () => invoke("open_output", { combined: true }).catch(e => setErr(String(e)));
+$("again").onclick = () => { st.view = "setup"; st.cancelling = false; renderExample(); render(); };
+$("reportBtn").onclick = () => { st.reportOpen = !st.reportOpen; render(); };
+
+let working = null;
+async function tick() {
+  let r; try { r = await invoke("get_status", { since: st.since }); } catch { return; }
+  st.s = r.status; st.since = r.next;
+  const box = $("tlist");
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  if (working) { working.remove(); working = null; }
+  if (r.items.length) {
+    box.insertAdjacentHTML("beforeend", r.items.map(i => rowHtml(i.src, i.out, i.tag, i.tag === "skipped")).join(""));
+    st.rows += r.items.length;
+    while (box.childElementCount > 2000) box.firstElementChild.remove();
+  }
+  if (locked() && st.s.current) {
+    box.insertAdjacentHTML("beforeend", rowHtml(st.s.current, "…", "working", false));
+    working = box.lastElementChild;
+  }
+  if (atBottom) box.scrollTop = box.scrollHeight;
+  if (["done", "cancelled", "error"].includes(st.s.state)) {
+    clearInterval(poll);
+    if (st.s.state === "error") { st.view = "setup"; setErr(st.s.error); renderExample(); }
+  }
+  render();
+}
+
+/* ---------- render ---------- */
+function render() {
+  const s = st.s || {};
+  const inProg = st.view === "progress";
+  const running = locked();
+  const finished = inProg && ["done", "cancelled"].includes(s.state);
+  const failures = s.failures || [];
+  const pct = s.total ? Math.round(100 * s.done / s.total) : 0;
+
+  let title = "Mirror preview", phase = "Ready", dot = "#b9b4af";
+  if (running) { title = s.state === "scanning" ? "Looking through your folder…" : `Converting… ${pct}%`; phase = "Converting"; dot = "#3f8a4f"; }
+  else if (finished) {
+    title = s.state === "cancelled" ? "Stopped" : s.total === 0 ? "Nothing to convert" : s.failed > 0 ? "Done, with a few skipped" : "All done";
+    phase = s.state === "cancelled" ? "Stopped" : s.failed > 0 ? "Completed with warnings" : "Completed";
+    dot = s.failed > 0 || s.state === "cancelled" ? "#846e2d" : "#3f8a4f";
+  }
+  $("ptitle").textContent = title; $("phase").textContent = phase;
+  $("dot").style.background = dot; $("dot").style.animation = running ? "blink 1.2s ease-in-out infinite" : "none";
+  $("count").textContent = inProg ? `${s.done || 0} / ${s.total || 0} files` : "";
+
+  $("barWrap").hidden = !running; $("fill").style.width = pct + "%";
+  $("cur").textContent = s.current ? "‎" + s.current : " ";
+
+  $("statsWrap").hidden = !finished;
+  $("sOk").textContent = s.converted || 0; $("sBad").textContent = s.failed || 0;
+  $("sBad").style.color = s.failed ? "var(--bad)" : "var(--ink)"; $("sTime").textContent = (s.seconds || 0) + "s";
+  const extra = [];
+  if (s.unchanged) extra.push(`${s.unchanged} unchanged`);
+  if (s.copied) extra.push(`${s.copied} copied as-is`);
+  $("extra").hidden = !(finished && extra.length); $("extra").textContent = extra.join(" · ");
+
+  if (inProg) {
+    $("tnote").textContent = !st.rows && !running ? "No files were processed." : running ? (st.rows ? "Showing files as they are processed." : "Looking through your folder…") : `Showing ${Math.min(st.rows, 2000)} of ${s.done} processed files.`;
+  }
+  $("openCombined").hidden = !(finished && s.combined);
+
+  $("report").hidden = !(finished && failures.length);
+  $("caret").textContent = st.reportOpen ? "▾" : "▸";
+  $("failSum").textContent = `${s.failed} file${s.failed === 1 ? "" : "s"} couldn't be converted`;
+  $("failList").hidden = !st.reportOpen;
+  $("failList").innerHTML = failures.map(f => `<div class="fail"><span class="f">${esc(f.file)}</span><span class="r">${esc(f.reason)}</span></div>`).join("");
+
+  $("idleNote").hidden = inProg;
+  $("cancel").hidden = !running; $("cancel").disabled = st.cancelling; $("cancel").textContent = st.cancelling ? "Stopping…" : "Cancel";
+  $("open").hidden = !finished; $("again").hidden = !finished;
+
+  for (const id of ["srcCard", "drop", "out", "browseOut", "go", "optsBtn"]) $(id).disabled = running;
+  $("go").textContent = running ? "Converting…" : "Convert to Markdown";
+  renderHeads();
+}
+
+/* ---------- window + status bar ---------- */
+document.querySelectorAll("[data-win]").forEach(b => b.onclick = () => invoke("window_control", { action: b.dataset.win }));
+let shellOn = false;
+function renderShell() { $("shellLink").textContent = shellOn ? "Right-click menu: on" : "Add to right-click menu"; }
+$("shellLink").onclick = async () => {
+  try { shellOn = await invoke("set_shell_integration", { enabled: !shellOn }); renderShell(); }
+  catch (e) { setErr(String(e)); }
+};
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $("optsDlg").hidden = true;
+  if (e.key === "Enter" && e.ctrlKey && !locked()) go();
+});
+document.addEventListener("contextmenu", e => { if (!e.target.closest("input")) e.preventDefault(); });
+
+(async () => {
+  optsSummary(); renderExample(); render();
+  const info = await invoke("launch_info");
+  $("ver").textContent = `v${info.version} · MIT License`;
+  shellOn = info.shellRegistered; $("shellLink").hidden = !info.shellSupported; renderShell();
+  if (info.source) {
+    st.outTouched = false; setSrc(info.source);
+    st.out = await invoke("suggest_output", { source: info.source }); $("out").value = st.out;
+    go(); // launched from Explorer's right-click menu: start right away
+  }
+})();
+</script>
+</body>
+</html>
