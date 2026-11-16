@@ -7,3 +7,5 @@ desktop/target/
 desktop/dist/
 desktop/app/binaries/
 desktop/app/gen/
+web/dist/
+web/pkg/

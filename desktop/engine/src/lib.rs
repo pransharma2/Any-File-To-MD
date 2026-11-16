@@ -7,13 +7,15 @@
 //! * originals are only ever read.
 
 pub mod convert;
+#[cfg(feature = "fs")]
 pub mod folder;
 pub mod formats;
 
-pub use convert::{convert_bytes, convert_path, is_media, ConvertError};
+pub use convert::{convert_bytes, convert_path, file_kind, is_media, ConvertError};
+#[cfg(feature = "fs")]
 pub use folder::{
-    collect_files, convert_folder, convert_single_file, default_output, plan_names, validate,
-    Item, Job, Options, Status,
+    collect_files, convert_folder, convert_single_file, default_output, list_files, plan_names,
+    validate, Item, Job, Listed, Options, Status,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

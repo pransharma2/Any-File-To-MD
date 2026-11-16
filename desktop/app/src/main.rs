@@ -64,6 +64,24 @@ fn path_kind(path: String) -> &'static str {
     }
 }
 
+#[derive(Serialize)]
+struct Listing {
+    files: Vec<engine::Listed>,
+    truncated: bool,
+}
+
+/// Every file the options would convert, for the picker in the mirror preview.
+#[tauri::command]
+async fn list_source(source: String, output: String, options: engine::Options) -> Result<Listing, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let src = clean(&source);
+        let out = if output.trim().is_empty() { engine::default_output(&src) } else { clean(&output) };
+        engine::list_files(&src, &out, &options, 20_000).map(|(files, truncated)| Listing { files, truncated })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[tauri::command]
 async fn pick_folder(window: WebviewWindow, title: String, start: Option<String>) -> Option<String> {
     tauri::async_runtime::spawn_blocking(move || {
@@ -240,6 +258,7 @@ fn main() {
             launch_info,
             suggest_output,
             path_kind,
+            list_source,
             pick_folder,
             start_conversion,
             get_status,

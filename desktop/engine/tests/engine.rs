@@ -123,6 +123,29 @@ fn filters_combine_and_copy() {
 }
 
 #[test]
+fn picker_list_and_deselect() {
+    let t = tempfile::tempdir().unwrap();
+    let src = t.path().join("s");
+    write(&src.join("a.txt"), b"alpha");
+    write(&src.join("Sub/b.txt"), b"beta");
+    write(&src.join("Sub/deep/c.txt"), b"gamma");
+    write(&src.join("pic.png"), b"\x89PNG");
+    let (listed, more) = list_files(&src, &t.path().join("o"), &Options::default(), 100).unwrap();
+    assert!(!more);
+    assert_eq!(listed.len(), 4);
+    assert_eq!(listed.iter().find(|l| l.rel == "pic.png").unwrap().kind, "media");
+    assert_eq!(listed.iter().find(|l| l.rel == "Sub/b.txt").unwrap().out, "Sub/b.md");
+
+    // Untick a whole folder (case-insensitive) and one file.
+    let opts = Options { deselect: vec!["sub/deep".into(), "pic.png".into()], skip_unchanged: false, ..Options::default() };
+    let s = run(&src, &t.path().join("o"), &opts);
+    assert_eq!(s.total, 2);
+    assert!(t.path().join("o/Sub/b.md").exists() && !t.path().join("o/Sub/deep").exists());
+    // The picker itself still lists everything.
+    assert_eq!(list_files(&src, &t.path().join("o"), &opts, 100).unwrap().0.len(), 4);
+}
+
+#[test]
 fn docx_headings_lists_tables() {
     let doc = r#"<?xml version="1.0"?><w:document xmlns:w="w" xmlns:r="r"><w:body>
       <w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>Quarterly Report</w:t></w:r></w:p>

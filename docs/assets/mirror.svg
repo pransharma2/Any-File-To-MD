@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="'JetBrains Mono',Consolas,'Courier New',monospace">
+  <title>The output folder mirrors the source folder, one Markdown file per document. Untick anything you want left out.</title>
+  <defs>
+    <pattern id="dots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#e3dfda"/></pattern>
+    <clipPath id="c"><rect x="1" y="1" width="1278" height="418" rx="18"/></clipPath>
+  </defs>
+  <rect x="1" y="1" width="1278" height="418" rx="18" fill="#eeeae4" stroke="#e3dfda" stroke-width="2"/>
+  <g clip-path="url(#c)"><rect width="1280" height="420" fill="url(#dots)"/></g>
+
+  <!-- card -->
+  <rect x="60" y="40" width="1160" height="340" rx="10" fill="#ffffff" stroke="#e3dfda" stroke-width="1.5"/>
+  <text x="92" y="86" font-family="'Instrument Serif',Georgia,serif" font-size="30" fill="#271e19" letter-spacing="-.5">Mirror preview</text>
+  <rect x="1048" y="70" width="8" height="8" fill="#3f8a4f"/>
+  <text x="1066" y="80" font-family="'Instrument Sans',-apple-system,'Segoe UI',Arial,sans-serif" font-size="15" fill="#271e19">Ready</text>
+  <path d="M60 108h1160" stroke="#eeeae4" stroke-width="1.5"/>
+
+  <rect x="88" y="124" width="1104" height="232" rx="6" stroke="#e3dfda" stroke-width="1.5"/>
+  <g font-size="15" fill="#665f59">
+    <text x="112" y="152">Reports/</text><text x="620" y="152" fill="#b9b4af">→</text><text x="660" y="152">Reports-markdown/</text>
+  </g>
+  <path d="M88 166h1104" stroke="#eeeae4" stroke-width="1.5"/>
+  <text x="112" y="190" font-family="'Instrument Sans',-apple-system,'Segoe UI',Arial,sans-serif" font-size="14" font-weight="600" fill="#271e19">4 of 6 files selected</text>
+  <g font-family="'Instrument Sans',-apple-system,'Segoe UI',Arial,sans-serif" font-size="14" fill="#6d51ac"><text x="964" y="190">Select all</text><text x="1050" y="190">Select none</text></g>
+  <path d="M88 202h1104" stroke="#eeeae4" stroke-width="1.5"/>
+
+  <!-- rows: checkbox, source, arrow, output, tag -->
+  <g font-size="15">
+    <!-- q1.pdf -->
+    <rect x="112" y="214" width="14" height="14" rx="2" fill="#271e19"/><path d="M115.5 221l3 3 4.5-5.5" stroke="#f9f5ef" stroke-width="1.6"/>
+    <text x="140" y="226" fill="#665f59">q1.pdf</text><text x="620" y="226" fill="#b9b4af">→</text><text x="660" y="226" fill="#271e19">q1.md</text>
+    <rect x="1112" y="211" width="56" height="20" rx="3" fill="#3f8a4f" fill-opacity=".1"/><text x="1140" y="226" text-anchor="middle" font-size="12.5" fill="#3f8a4f" font-family="'Instrument Sans',Arial,sans-serif">done</text>
+    <path d="M88 238h1104" stroke="#eeeae4"/>
+
+    <!-- budget.xlsx -->
+    <rect x="112" y="246" width="14" height="14" rx="2" fill="#271e19"/><path d="M115.5 253l3 3 4.5-5.5" stroke="#f9f5ef" stroke-width="1.6"/>
+    <text x="140" y="258" fill="#665f59">budget.xlsx</text><text x="620" y="258" fill="#b9b4af">→</text><text x="660" y="258" fill="#271e19">budget.md</text>
+    <rect x="1112" y="243" width="56" height="20" rx="3" fill="#3f8a4f" fill-opacity=".1"/><text x="1140" y="258" text-anchor="middle" font-size="12.5" fill="#3f8a4f" font-family="'Instrument Sans',Arial,sans-serif">done</text>
+    <path d="M88 270h1104" stroke="#eeeae4"/>
+
+    <!-- notes/a.pdf + a.docx -->
+    <rect x="112" y="278" width="14" height="14" rx="2" fill="#271e19"/><path d="M115.5 285l3 3 4.5-5.5" stroke="#f9f5ef" stroke-width="1.6"/>
+    <text x="140" y="290" fill="#665f59">notes/a.pdf · notes/a.docx</text><text x="620" y="290" fill="#b9b4af">→</text><text x="660" y="290" fill="#271e19">notes/a.pdf.md · notes/a.docx.md</text>
+    <rect x="1098" y="275" width="84" height="20" rx="3" fill="#6d51ac" fill-opacity=".1"/><text x="1140" y="290" text-anchor="middle" font-size="12.5" fill="#6d51ac" font-family="'Instrument Sans',Arial,sans-serif">renamed</text>
+    <path d="M88 302h1104" stroke="#eeeae4"/>
+
+    <!-- drafts/ unticked -->
+    <rect x="112.5" y="310.5" width="13" height="13" rx="2" fill="#ffffff" stroke="#cfc8c1"/>
+    <text x="140" y="322" fill="#b9b4af" text-decoration="line-through">drafts/</text><text x="620" y="322" fill="#b9b4af">→</text><text x="660" y="322" fill="#b9b4af" text-decoration="line-through">not converted</text>
+  </g>
+
+  <!-- annotations -->
+  <g font-family="'Instrument Sans',-apple-system,'Segoe UI',Arial,sans-serif" font-size="14" fill="#7b746f">
+    <path d="M214 326c10 22 70 34 168 32" fill="none" stroke="#6d51ac" stroke-width="1.3" stroke-dasharray="3 4"/>
+    <text x="392" y="362" fill="#6d51ac">untick anything to leave it out</text>
+    <text x="640" y="402" text-anchor="middle" fill="#7b746f">same-name files keep their extension, so nothing is overwritten</text>
+  </g>
+</svg>

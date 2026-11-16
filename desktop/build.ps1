@@ -34,10 +34,12 @@ try {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 } finally { Pop-Location }
 
+$ver = (Get-Content app\tauri.conf.json -Raw | ConvertFrom-Json).version
+if (Test-Path dist) { Remove-Item -Recurse -Force dist }
 New-Item -ItemType Directory -Force dist | Out-Null
-Copy-Item target\release\bundle\nsis\*.exe dist\ -Force
-Copy-Item target\release\any-file-to-md.exe 'dist\Any File To MD (portable).exe' -Force
-Copy-Item target\release\anytomd.exe dist\anytomd.exe -Force
+Copy-Item "target\release\bundle\nsis\Any File To MD_${ver}_x64-setup.exe" "dist\AnyFileToMD-$ver-setup.exe" -Force
+Copy-Item target\release\any-file-to-md.exe "dist\AnyFileToMD-$ver-portable.exe" -Force
+Copy-Item target\release\anytomd.exe "dist\anytomd-$ver-windows-x64.exe" -Force
 Write-Host ''
 Write-Host "Done. Installer and portable app are in $PSScriptRoot\dist" -ForegroundColor Green
 Get-ChildItem dist | Format-Table Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}}

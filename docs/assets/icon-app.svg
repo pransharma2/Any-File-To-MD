@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round" stroke-linejoin="round"><title>Windows app</title>
+<rect x="1" y="1" width="94" height="94" rx="18" fill="#f9f5ef" stroke="#e3dfda" stroke-width="2"/>
+<rect x="16" y="22" width="64" height="44" rx="4" fill="#fff" stroke="#271e19" stroke-width="1.8"/>
+<path d="M16 30h64" stroke="#271e19" stroke-width="1.8"/><path d="M68 26h2M73 26h2" stroke="#271e19" stroke-width="1.6"/>
+<path d="M24 38h20v20H24z" stroke="#271e19" stroke-width="1.4"/><path d="M28 44h12M28 49h9M28 54h12" stroke="#908984" stroke-width="1.2"/>
+<path d="M54 41l-1.2 12M59 41l-1.2 12M51.5 45h9M51 49.5h9" stroke="#6d51ac" stroke-width="1.6"/>
+<path d="M40 74h16M48 66v8" stroke="#271e19" stroke-width="1.8"/>
+</svg>

@@ -12,6 +12,12 @@ path = "src/lib.rs"
 [[bin]]
 name = "anytomd"
 path = "src/bin/anytomd.rs"
+required-features = ["fs"]
+
+[features]
+default = ["fs"]
+# Folder mirroring, parallelism and the CLI. Off for the WebAssembly build.
+fs = ["dep:globset", "dep:rayon", "dep:walkdir"]
 
 [dependencies]
 anyhow = "1"
@@ -20,16 +26,16 @@ cfb = "0.10"
 chrono = "0.4"
 csv = "1"
 encoding_rs = "0.8"
-globset = "0.4"
+globset = { version = "0.4", optional = true }
 htmd = "0.5"
 imagesize = "0.13"
 kamadak-exif = "0.6"
 pdf-extract = "0.7"
 quick-xml = "0.37"
-rayon = "1"
+rayon = { version = "1", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-walkdir = "2"
+walkdir = { version = "2", optional = true }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
