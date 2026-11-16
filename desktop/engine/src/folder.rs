@@ -38,17 +38,20 @@ pub struct Options {
     pub include: Vec<String>,
     /// Glob patterns to skip, matched against the relative path and the file name (e.g. `*.log`, `drafts/**`).
     pub exclude: Vec<String>,
+    /// Relative paths (files or folders, `/`-separated) unticked in the file picker.
+    pub deselect: Vec<String>,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Options { skip_unchanged: true, combine: false, copy_unsupported: false, include: vec![], exclude: vec![] }
+        Options { skip_unchanged: true, combine: false, copy_unsupported: false, include: vec![], exclude: vec![], deselect: vec![] }
     }
 }
 
 struct Filter {
     include: Vec<String>,
     exclude: GlobSet,
+    deselect: std::collections::HashSet<String>,
 }
 
 impl Filter {
@@ -71,13 +74,28 @@ impl Filter {
                 b.add(Glob::new(&format!("**/{pat}/**")).map_err(|e| e.to_string())?);
             }
         }
-        Ok(Filter { include, exclude: b.build().map_err(|e| e.to_string())? })
+        let deselect = o.deselect.iter().map(|d| d.replace('\\', "/").trim_matches('/').to_lowercase()).filter(|d| !d.is_empty()).collect();
+        Ok(Filter { include, exclude: b.build().map_err(|e| e.to_string())?, deselect })
     }
 
     fn allows(&self, rel: &str) -> bool {
         let name = rel.rsplit('/').next().unwrap_or(rel);
         if self.exclude.is_match(rel) || self.exclude.is_match(name) {
             return false;
+        }
+        if !self.deselect.is_empty() {
+            // The file itself, or any folder above it, was unticked.
+            let lower = rel.to_lowercase();
+            let mut cut = lower.as_str();
+            loop {
+                if self.deselect.contains(cut) {
+                    return false;
+                }
+                match cut.rfind('/') {
+                    Some(i) => cut = &cut[..i],
+                    None => break,
+                }
+            }
         }
         self.include.is_empty() || self.include.contains(&ext_of(name))
     }
@@ -270,6 +288,45 @@ pub fn collect_files(source: &Path, output: &Path, opts: &Options) -> Result<Vec
         .collect();
     files.sort_by_key(|p| p.strip_prefix(source).map(|r| rel_string(r).to_lowercase()).unwrap_or_default());
     Ok(files)
+}
+
+/// One entry of the file picker in the app.
+#[derive(Clone, Debug, Serialize)]
+pub struct Listed {
+    /// Relative path, `/`-separated.
+    pub rel: String,
+    /// Planned relative output path.
+    pub out: String,
+    pub size: u64,
+    /// doc | media | other (see [`crate::convert::file_kind`]).
+    pub kind: &'static str,
+}
+
+/// Every file the current options would pick up, ignoring the picker's own `deselect` list.
+/// Returns at most `limit` files, and whether there were more.
+pub fn list_files(source: &Path, output: &Path, opts: &Options, limit: usize) -> Result<(Vec<Listed>, bool), String> {
+    if !source.is_dir() {
+        return Err("That source folder doesn't exist.".into());
+    }
+    let o = Options { deselect: vec![], ..opts.clone() };
+    let files = collect_files(source, output, &o)?;
+    let truncated = files.len() > limit;
+    let files = &files[..files.len().min(limit)];
+    Ok((
+        plan_names(source, files)
+            .into_iter()
+            .map(|(src, out, _)| {
+                let rel = rel_string(src.strip_prefix(source).unwrap_or(&src));
+                Listed {
+                    kind: crate::convert::file_kind(&ext_of(&rel)),
+                    size: fs::metadata(&src).map(|m| m.len()).unwrap_or(0),
+                    out: rel_string(&out),
+                    rel,
+                }
+            })
+            .collect(),
+        truncated,
+    ))
 }
 
 /// Map each file to (relative .md path, renamed?).

@@ -1,0 +1,31 @@
+/* Shared by the desktop app and the website: option chips and the file picker. */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:30px;padding:0 11px;border:1px solid var(--line);border-radius:15px;background:var(--card);font-size:13px;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--btn);border-color:var(--btn);color:var(--bg)}
+.chip.on::before{content:"✓ ";font-size:11px}
+.dfield .chips + .input{margin-top:4px}
+
+/* picker */
+.ptool{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--divider);font-size:12.5px;color:var(--ink3);flex-wrap:wrap}
+.ptool b{font-weight:500;color:var(--ink)}
+.ptool a{color:var(--accent);cursor:pointer;white-space:nowrap}
+.ptool a:hover{text-decoration:underline}
+.ptool .sp{flex:1}
+.prow{cursor:pointer;outline:none}
+.prow:hover{background:#fdfbf8}
+.prow:focus-visible{box-shadow:inset 2px 0 0 var(--accent)}
+.prow.dir{color:var(--ink)}
+.prow.dir .pname > .ell{font-weight:500}
+.prow.off .pname > .ell,.prow.off .pout{color:var(--faint2);text-decoration:line-through;text-decoration-color:#cfc8c1}
+.pname{display:flex;align-items:center;gap:7px;min-width:0}
+.pname .caret{width:10px;flex:none;color:var(--faint);font-size:11px}
+.pout{color:var(--ink)}
+.pcount{justify-self:end;font-size:11px;color:var(--faint)}
+.cb{width:14px;height:14px;flex:none;border:1px solid #cfc8c1;border-radius:2px;background:var(--card);display:grid;place-items:center}
+.cb.on,.cb.mixed{background:var(--btn);border-color:var(--btn)}
+.cb.on::after{content:"";width:7px;height:3.5px;border-left:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(-45deg) translate(.5px,-1px)}
+.cb.mixed::after{content:"";width:7px;height:1.5px;background:var(--bg)}
+.tlist.locked .prow{cursor:default}
+.tag.info{background:var(--warn-bg);color:var(--warn)}
+.tag.maybe{background:var(--stage);color:var(--ink3)}

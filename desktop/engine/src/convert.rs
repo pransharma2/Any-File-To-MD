@@ -96,6 +96,23 @@ pub fn code_lang(ext: &str) -> Option<&'static str> {
     })
 }
 
+/// Rough guess used by the file picker: `doc` has a converter, `media` only yields
+/// metadata, `other` is tried as text and may be skipped.
+pub fn file_kind(ext: &str) -> &'static str {
+    const DOCS: &[&str] = &[
+        "pdf", "docx", "docm", "dotx", "pptx", "pptm", "ppsx", "xlsx", "xlsm", "xlsb", "xls", "ods", "odt",
+        "csv", "tsv", "html", "htm", "xhtml", "epub", "zip", "msg", "ipynb", "json", "jsonl", "geojson",
+        "xml", "rss", "atom", "plist",
+    ];
+    if PASSTHROUGH.contains(&ext) || DOCS.contains(&ext) || code_lang(ext).is_some() {
+        "doc"
+    } else if is_media(ext) {
+        "media"
+    } else {
+        "other"
+    }
+}
+
 pub fn ext_of(name: &str) -> String {
     let base = name.rsplit(['/', '\\']).next().unwrap_or(name);
     if base.eq_ignore_ascii_case("dockerfile") {

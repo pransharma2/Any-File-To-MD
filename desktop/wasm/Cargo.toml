@@ -1,0 +1,14 @@
+[package]
+name = "anytomd-wasm"
+description = "The Any File To MD engine for the browser (WebAssembly)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+anytomd-engine = { path = "../engine", default-features = false }
+wasm-bindgen = "=0.2.100"

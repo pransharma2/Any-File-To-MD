@@ -1,0 +1,58 @@
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "desktop/engine/**"
+      - "desktop/wasm/**"
+      - "desktop/app/ui/common.*"
+      - "desktop/app/ui/fonts/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@0.2.100
+      - name: Build the site
+        run: |
+          cargo build --manifest-path desktop/Cargo.toml -p anytomd-wasm --target wasm32-unknown-unknown --profile wasm
+          mkdir -p _site/pkg _site/fonts
+          wasm-bindgen desktop/target/wasm32-unknown-unknown/wasm/anytomd_wasm.wasm --target web --no-typescript --out-dir _site/pkg
+          cp web/index.html web/app.js web/worker.js web/favicon.svg desktop/app/ui/common.js desktop/app/ui/common.css _site/
+          cp desktop/app/ui/fonts/*.woff2 _site/fonts/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

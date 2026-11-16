@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Any File To MD</title>
+<link rel="stylesheet" href="common.css">
 <style>
 @font-face{font-family:'Instrument Serif';font-weight:400;font-style:normal;font-display:block;src:url(fonts/instrument-serif-latin-400-normal.woff2) format('woff2')}
 @font-face{font-family:'Instrument Sans';font-weight:400;font-style:normal;font-display:block;src:url(fonts/instrument-sans-latin-400-normal.woff2) format('woff2')}
@@ -144,11 +145,11 @@ h1{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:
 
 /* options dialog */
 .scrim{position:absolute;inset:0;z-index:50;background:rgba(39,30,25,.4);display:grid;place-items:center;padding:24px}
-.dialog{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 24px 64px -16px rgba(39,30,25,.35);overflow:hidden}
+.dialog{width:min(600px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 24px 64px -16px rgba(39,30,25,.35);overflow:hidden}
 .dhead{padding:20px 22px 14px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--divider)}
 .dhead h3{margin:0;font-family:var(--serif);font-weight:400;font-size:24px;letter-spacing:-.02em}
 .dhead p{margin:0;font-size:13px;color:var(--ink3)}
-.dbody{padding:6px 22px 14px;display:flex;flex-direction:column}
+.dbody{padding:6px 22px 14px;display:flex;flex-direction:column;overflow:auto;min-height:0}
 .check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--divider);cursor:pointer}
 .check input{appearance:none;width:16px;height:16px;flex:none;margin:2px 0 0;border:1px solid #cfc8c1;border-radius:2px;background:var(--card);display:grid;place-items:center;cursor:pointer}
 .check input:checked{background:var(--btn);border-color:var(--btn)}
@@ -262,6 +263,8 @@ h1{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:
           <div class="extra" id="extra" hidden></div>
           <div class="tree">
             <div class="trow head"><span class="ell" id="tSrc">source/</span><span class="a">→</span><span class="ell" id="tOut">source-markdown/</span><span></span></div>
+            <div class="ptool" id="ptool" hidden><b id="pcount"></b><span class="sp"></span><a id="pAll">Select all</a><a id="pNone">Select none</a><a id="pExpand">Expand all</a></div>
+            <div class="tlist" id="plist" hidden></div>
             <div class="tlist" id="tlist"></div>
             <div class="tnote"><span id="tnote">Example. Folders are copied exactly; same-name files keep their extension.</span><a id="openCombined" hidden>Open _combined.md</a></div>
           </div>
@@ -293,13 +296,7 @@ h1{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:
         <h3 id="optsTitle">Conversion options</h3>
         <p>Saved on this computer and used for every run, including the right-click menu.</p>
       </div>
-      <div class="dbody">
-        <label class="check"><input type="checkbox" id="oSkip"><div><b>Skip unchanged files</b><span>Re-runs only convert new or edited files, so re-syncing a big folder takes seconds.</span></div></label>
-        <label class="check"><input type="checkbox" id="oCombine"><div><b>Also create one combined file</b><span>Writes <code>_combined.md</code> with every document and a table of contents. Handy for pasting into an AI chat.</span></div></label>
-        <label class="check"><input type="checkbox" id="oCopy"><div><b>Copy files that can't be converted</b><span>Images, media and unknown files are copied as-is instead of skipped, so the output is a complete mirror.</span></div></label>
-        <div class="dfield"><label for="oInclude">Only these file types</label><input class="input" id="oInclude" placeholder="All types (e.g. pdf, docx, pptx)" spellcheck="false"><span class="hint">Comma-separated extensions. Leave empty to convert everything.</span></div>
-        <div class="dfield" style="border-bottom:0"><label for="oExclude">Skip these paths</label><input class="input" id="oExclude" placeholder="e.g. drafts, *.log, archive/**" spellcheck="false"><span class="hint">Comma-separated folder names or glob patterns.</span></div>
-      </div>
+      <div class="dbody" id="optsBody"></div>
       <div class="dfoot">
         <button type="button" class="btn2" id="oReset">Reset</button>
         <span style="flex:1"></span>
@@ -310,17 +307,18 @@ h1{margin:0;font-family:var(--serif);font-weight:400;font-size:36px;line-height:
   </div>
 </div>
 
+<script src="common.js"></script>
 <script>
 const T = window.__TAURI__;
+const A = window.AnyToMd;
 const invoke = (cmd, args) => T.core.invoke(cmd, args);
 const $ = id => document.getElementById(id);
 const baseName = p => (p || "").replace(/[\\/]+$/, "").split(/[\\/]/).pop() || "";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 /* ---------- state ---------- */
-const DEFAULT_OPTS = { skipUnchanged: true, combine: false, copyUnsupported: false, include: [], exclude: [] };
-let opts = { ...DEFAULT_OPTS };
-try { opts = { ...DEFAULT_OPTS, ...JSON.parse(localStorage.getItem("anytomd.options") || "{}") }; } catch {}
+const OPTS_KEY = "anytomd.options";
+let opts = A.load(OPTS_KEY);
 const st = { view: "setup", src: "", out: "", outTouched: false, s: null, since: 0, rows: 0, cancelling: false, reportOpen: true };
 let poll = null, sug = null;
 
@@ -342,29 +340,46 @@ function renderExample() {
 }
 
 /* ---------- options ---------- */
-function optsSummary() {
-  const parts = [opts.skipUnchanged ? "Skip unchanged" : "Re-convert all"];
-  if (opts.combine) parts.push("Combined file");
-  if (opts.copyUnsupported) parts.push("Copy others");
-  if (opts.include.length) parts.push("Only " + opts.include.join(", "));
-  if (opts.exclude.length) parts.push("Skip " + opts.exclude.join(", "));
-  $("optsSum").textContent = parts.join(" · ");
-}
-const list = v => v.split(",").map(s => s.trim()).filter(Boolean);
-function openOpts() {
-  $("oSkip").checked = opts.skipUnchanged; $("oCombine").checked = opts.combine; $("oCopy").checked = opts.copyUnsupported;
-  $("oInclude").value = opts.include.join(", "); $("oExclude").value = opts.exclude.join(", ");
-  $("optsDlg").hidden = false;
-}
+function optsSummary() { $("optsSum").textContent = A.summary(opts); }
+function openOpts() { A.renderOptions($("optsBody"), opts); $("optsDlg").hidden = false; }
 $("optsBtn").onclick = openOpts;
 $("oCancel").onclick = () => { $("optsDlg").hidden = true; };
 $("optsDlg").onclick = e => { if (e.target === $("optsDlg")) $("optsDlg").hidden = true; };
-$("oReset").onclick = () => { opts = { ...DEFAULT_OPTS }; openOpts(); };
+$("oReset").onclick = () => A.renderOptions($("optsBody"), A.DEFAULTS);
 $("oSave").onclick = () => {
-  opts = { skipUnchanged: $("oSkip").checked, combine: $("oCombine").checked, copyUnsupported: $("oCopy").checked, include: list($("oInclude").value), exclude: list($("oExclude").value) };
-  try { localStorage.setItem("anytomd.options", JSON.stringify(opts)); } catch {}
-  optsSummary(); $("optsDlg").hidden = true;
+  opts = A.readOptions($("optsBody"), opts);
+  A.save(OPTS_KEY, opts); optsSummary(); $("optsDlg").hidden = true;
+  if (st.view === "setup") loadPicker(true);
 };
+
+/* ---------- file picker (mirror preview of the real folder) ---------- */
+const picker = new A.Picker($("plist"), renderPicker);
+let listSeq = 0, listed = false;
+async function loadPicker(keep) {
+  const source = st.src.trim(), seq = ++listSeq;
+  if (!source) { listed = false; renderPicker(); return; }
+  $("tnote").textContent = "Looking through your folder…";
+  let r;
+  try { r = await invoke("list_source", { source, output: $("out").value.trim(), options: A.engineOptions(opts) }); }
+  catch (e) { if (seq === listSeq) { listed = false; renderPicker(); setErr(String(e)); } return; }
+  if (seq !== listSeq) return;
+  listed = true; st.truncated = r.truncated;
+  picker.setFiles(r.files, keep && picker.root ? picker : null);
+}
+function renderPicker() {
+  const show = listed && st.view === "setup";
+  $("plist").hidden = !show; $("ptool").hidden = !show; $("tlist").hidden = show;
+  if (!show) return;
+  const n = picker.total, k = picker.selected;
+  $("pcount").textContent = n ? `${k} of ${n} file${n === 1 ? "" : "s"} selected` : "No files match your options";
+  $("tnote").textContent = st.truncated ? `Showing the first ${n} files; the rest are always converted.` : "Click a folder to open it. Untick anything you don't want converted.";
+  const dirs = [...picker.byPath.values()].filter(d => d.dir && d.depth >= 0);
+  $("pExpand").hidden = !dirs.length;
+  $("pExpand").textContent = dirs.some(d => !d.open) ? "Expand all" : "Collapse all";
+}
+$("pAll").onclick = () => picker.selectAll(true);
+$("pNone").onclick = () => picker.selectAll(false);
+$("pExpand").onclick = () => { picker.expandAll($("pExpand").textContent === "Expand all"); renderPicker(); };
 
 /* ---------- source / output ---------- */
 function setErr(m) { $("err").textContent = m || ""; $("err").hidden = !m; }
@@ -375,11 +390,12 @@ function setSrc(path) {
   $("srcRoot").textContent = baseName(st.src) || st.src;
   $("srcPath").textContent = "‎" + st.src;
   clearTimeout(sug);
+  picker.root = null; listed = false; renderPicker();
+  if (!has) renderExample();
   sug = setTimeout(async () => {
-    if (!st.src.trim() || st.outTouched) return renderHeads();
-    st.out = await invoke("suggest_output", { source: st.src });
-    $("out").value = st.out; renderHeads();
-  }, 250);
+    if (st.src.trim() && !st.outTouched) { st.out = await invoke("suggest_output", { source: st.src }); $("out").value = st.out; }
+    renderHeads(); loadPicker(false);
+  }, 150);
   renderHeads();
 }
 function renderHeads() {
@@ -394,12 +410,13 @@ async function browse(target) {
   const p = await invoke("pick_folder", { title, start: start || null });
   if (!p) return;
   if (target === "src") { st.outTouched = false; setSrc(p); }
-  else { st.out = p; st.outTouched = true; $("out").value = p; renderHeads(); }
+  else { st.out = p; st.outTouched = true; $("out").value = p; renderHeads(); loadPicker(true); }
 }
 $("srcCard").onclick = () => browse("src");
 $("drop").onclick = () => browse("src");
 $("browseOut").onclick = () => browse("out");
 $("out").oninput = e => { st.out = e.target.value; st.outTouched = true; renderHeads(); };
+$("out").onchange = () => loadPicker(true);
 
 /* drag & drop anywhere on the window */
 T.webview.getCurrentWebview().onDragDropEvent(async e => {
@@ -420,13 +437,15 @@ async function go() {
   setErr("");
   const source = st.src.trim();
   if (!source) return setErr("Pick a folder first.");
+  if (listed && picker.total && !picker.selected) return setErr("Nothing is selected. Tick at least one file in the preview.");
+  const options = A.engineOptions(opts, listed ? picker.deselect() : []);
   let out;
-  try { out = await invoke("start_conversion", { source, output: $("out").value.trim(), options: opts }); }
+  try { out = await invoke("start_conversion", { source, output: $("out").value.trim(), options }); }
   catch (e) { return setErr(String(e)); }
   st.out = out; $("out").value = out;
   st.view = "progress"; st.s = { state: "scanning", total: 0, done: 0, failures: [] };
   st.since = 0; st.rows = 0; st.cancelling = false; st.reportOpen = true;
-  $("tlist").innerHTML = "";
+  $("tlist").innerHTML = ""; renderPicker();
   clearInterval(poll); poll = setInterval(tick, 400); tick();
   render();
 }
@@ -434,7 +453,7 @@ $("go").onclick = go;
 $("cancel").onclick = () => { st.cancelling = true; render(); invoke("cancel"); };
 $("open").onclick = () => invoke("open_output", { combined: false }).catch(e => setErr(String(e)));
 $("openCombined").onclick = () => invoke("open_output", { combined: true }).catch(e => setErr(String(e)));
-$("again").onclick = () => { st.view = "setup"; st.cancelling = false; renderExample(); render(); };
+$("again").onclick = () => { st.view = "setup"; st.cancelling = false; renderExample(); render(); loadPicker(true); };
 $("reportBtn").onclick = () => { st.reportOpen = !st.reportOpen; render(); };
 
 let working = null;
@@ -456,7 +475,7 @@ async function tick() {
   if (atBottom) box.scrollTop = box.scrollHeight;
   if (["done", "cancelled", "error"].includes(st.s.state)) {
     clearInterval(poll);
-    if (st.s.state === "error") { st.view = "setup"; setErr(st.s.error); renderExample(); }
+    if (st.s.state === "error") { st.view = "setup"; setErr(st.s.error); renderExample(); renderPicker(); }
   }
   render();
 }
@@ -493,7 +512,7 @@ function render() {
   $("extra").hidden = !(finished && extra.length); $("extra").textContent = extra.join(" · ");
 
   if (inProg) {
-    $("tnote").textContent = !st.rows && !running ? "No files were processed." : running ? (st.rows ? "Showing files as they are processed." : "Looking through your folder…") : `Showing ${Math.min(st.rows, 2000)} of ${s.done} processed files.`;
+    $("tnote").textContent = st.s && st.s.state === "scanning" && !st.rows ? "Looking through your folder…" : !st.rows && !running ? "No files were processed." : running ? (st.rows ? "Showing files as they are processed." : "Looking through your folder…") : `Showing ${Math.min(st.rows, 2000)} of ${s.done} processed files.`;
   }
   $("openCombined").hidden = !(finished && s.combined);
 
@@ -534,7 +553,7 @@ document.addEventListener("contextmenu", e => { if (!e.target.closest("input")) 
   if (info.source) {
     st.outTouched = false; setSrc(info.source);
     st.out = await invoke("suggest_output", { source: info.source }); $("out").value = st.out;
-    go(); // launched from Explorer's right-click menu: start right away
+    listSeq++; go(); // launched from Explorer's right-click menu: start right away
   }
 })();
 </script>

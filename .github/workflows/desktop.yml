@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths: ["desktop/**", ".github/workflows/desktop.yml"]
-    tags: ["v*"]
   pull_request:
     paths: ["desktop/**"]
   workflow_dispatch:
@@ -27,8 +26,3 @@ jobs:
         with:
           name: any-file-to-md-windows
           path: desktop/dist/*
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: desktop/dist/*
